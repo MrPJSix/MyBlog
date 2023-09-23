@@ -58,7 +58,18 @@ func GetCateInfo(id int) (model.Category, int) {
 func GetCate(pageSize, pageNum int) ([]model.Category, int64) {
 	var cateList []model.Category
 	var total int64
-	err = db.Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&cateList).Error
+
+	if pageSize >= 100 {
+		pageSize = 100
+	} else if pageSize <= 0 {
+		pageSize = -1
+	}
+
+	offset := (pageNum - 1) * pageSize
+	if pageNum == 0 {
+		offset = -1
+	}
+	err = db.Limit(pageSize).Offset(offset).Find(&cateList).Error
 	db.Model(&cateList).Count(&total)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, 0

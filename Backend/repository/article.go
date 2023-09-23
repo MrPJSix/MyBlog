@@ -44,7 +44,18 @@ func GetArt(pageSize int, pageNum int) ([]model.Article, int, int64) {
 	var articleList []model.Article
 	var total int64
 
-	err := db.Limit(pageSize).Offset((pageNum - 1) * pageSize).Order("created_at desc").Find(&articleList).Error
+	if pageSize >= 100 {
+		pageSize = 100
+	} else if pageSize <= 0 {
+		pageSize = -1
+	}
+
+	offset := (pageNum - 1) * pageSize
+	if pageNum == 0 {
+		offset = -1
+	}
+
+	err = db.Limit(pageSize).Offset(offset).Order("created_at desc").Find(&articleList).Error
 	db.Model(&articleList).Count(&total)
 	if err != nil {
 		return articleList, errmsg.ERROR, 0
@@ -57,9 +68,20 @@ func SearchArt(title string, pageSize int, pageNum int) ([]model.Article, int, i
 	var articleList []model.Article
 	var total int64
 
-	err := db.Select("article.id, title, img, created_at, updated_at, `desc`, comment_count, read_count, Category.Name").
+	if pageSize >= 100 {
+		pageSize = 100
+	} else if pageSize <= 0 {
+		pageSize = -1
+	}
+
+	offset := (pageNum - 1) * pageSize
+	if pageNum == 0 {
+		offset = -1
+	}
+
+	err = db.Select("article.id, title, img, created_at, updated_at, `desc`, comment_count, read_count, Category.Name").
 		Order("Created_At DESC").Joins("Category").Where("title LIKE ?", "%"+title+"%").
-		Limit(pageSize).Offset((pageNum - 1) * pageSize).Find(&articleList).Error
+		Limit(pageSize).Offset(offset).Find(&articleList).Error
 	db.Model(&articleList).Where("title LIKE ?", title+"%").Count(&total)
 	if err != nil {
 		return nil, errmsg.ERROR, 0
@@ -72,7 +94,7 @@ func EditArt(id int, data *model.Article) int {
 	var art model.Article
 	var maps = make(map[string]interface{})
 	maps["title"] = data.Title
-	maps["cid"] = data.CID
+	maps["cid"] = data.CategoryID
 	maps["desc"] = data.Desc
 	maps["content"] = data.Content
 	maps["img"] = data.Img

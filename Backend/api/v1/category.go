@@ -16,16 +16,12 @@ func AddCategory(c *gin.Context) {
 	code := errmsg.SUCCESS
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  code,
-			"message": errmsg.GetErrMsg(code),
-		})
+	} else {
+		code = repository.CreateCate(&data)
 	}
-	code = repository.CreateCate(&data)
 	c.JSON(
 		http.StatusOK, gin.H{
 			"status":  code,
-			"data":    data,
 			"message": errmsg.GetErrMsg(code),
 		},
 	)
@@ -52,15 +48,6 @@ func GetCate(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
 	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
 
-	if pageSize >= 100 {
-		pageSize = 100
-	} else if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	if pageNum == 0 {
-		pageNum = 1
-	}
 	data, total := repository.GetCate(pageSize, pageNum)
 	code := errmsg.SUCCESS
 	c.JSON(

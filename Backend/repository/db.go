@@ -33,5 +33,5 @@ func InitDB() {
 		log.Println("连接数据库失败！", err)
 	}
 
-	_ = db.AutoMigrate(&model.Article{}, &model.Category{})
+	_ = db.AutoMigrate(&model.Article{}, &model.Category{}, &model.User{})
 }

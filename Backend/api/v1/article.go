@@ -12,17 +12,11 @@ import (
 // 新增文章
 func AddArticle(c *gin.Context) {
 	var data model.Article
+	var code int
 	err := c.ShouldBindJSON(&data)
-	code := errmsg.SUCCESS
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  code,
-			"message": errmsg.GetErrMsg(code),
-		})
-	}
-
-	if code == errmsg.SUCCESS {
+	} else {
 		code = repository.CreateArt(&data)
 	}
 
@@ -75,16 +69,6 @@ func GetArtList(c *gin.Context) {
 	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
 	title := c.Query("title")
 
-	if pageSize >= 100 {
-		pageSize = 100
-	} else if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	if pageNum == 0 {
-		pageNum = 1
-	}
-
 	if len(title) == 0 {
 		data, code, total := repository.GetArt(pageSize, pageNum)
 		c.JSON(http.StatusOK, gin.H{
@@ -107,9 +91,9 @@ func GetArtList(c *gin.Context) {
 // 编辑文章
 func EditArt(c *gin.Context) {
 	var data model.Article
+	var code int
 	id, _ := strconv.Atoi(c.Param("id"))
 	err := c.ShouldBindJSON(&data)
-	code := errmsg.SUCCESS
 
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
