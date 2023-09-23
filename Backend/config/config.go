@@ -17,7 +17,7 @@ var (
 )
 
 func init() {
-	file, err := ini.Load("config.ini")
+	file, err := ini.Load("config/config.ini")
 	if err != nil {
 		log.Println("读取配置文件出错！", err)
 	}
@@ -27,13 +27,14 @@ func init() {
 
 func InitServerConfig(file *ini.File) {
 	AppMode = file.Section("server").Key("AppMode").MustString("debug")
-	HttpPort = file.Section("server").Key("AppMode").MustString(":9000")
+	HttpPort = file.Section("server").Key("HttpPort").MustString(":3000")
 }
 
 func InitDatabaseConfig(file *ini.File) {
-	DbHost = file.Section("database").Key("DbHost").String()
-	DbPort = file.Section("database").Key("DbPort").String()
-	DbUser = file.Section("database").Key("DbUser").String()
-	DbPassword = file.Section("database").Key("DbPassword").String()
-	DbName = file.Section("database").Key("DbName").String()
+	database := "database-" + AppMode
+	DbHost = file.Section(database).Key("DbHost").String()
+	DbPort = file.Section(database).Key("DbPort").String()
+	DbUser = file.Section(database).Key("DbUser").String()
+	DbPassword = file.Section(database).Key("DbPassword").String()
+	DbName = file.Section(database).Key("DbName").String()
 }
