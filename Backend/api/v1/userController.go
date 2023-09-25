@@ -13,7 +13,7 @@ import (
 /* ====================================== */
 
 type IUserController interface {
-	CreateUser(c *gin.Context)
+	CreateAdminUser(c *gin.Context)
 	GetUserList(c *gin.Context)
 	UpdateUserBasicInfo(c *gin.Context)
 	DeleteUser(c *gin.Context)
@@ -31,20 +31,27 @@ func NewUserController() *UserController {
 /* ====================================== */
 
 // 新增用户
-func (uc *UserController) CreateUser(c *gin.Context) {
+func (uc *UserController) CreateAdminUser(c *gin.Context) {
 	var user model.User
 	var code int
 	err := c.ShouldBindJSON(&user)
+	user.Role = 1 // 授权管理员
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  code,
+			"data":    nil,
 			"message": errmsg.GetErrMsg(code),
 		})
 	}
 	code = uc.userService.CreateUser(&user)
+	var responseData *dto.UserResponse
+	if code == errmsg.SUCCESS {
+		responseData = dto.UserToResponse(&user)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"data":    responseData,
 		"message": errmsg.GetErrMsg(code),
 	})
 }
@@ -75,14 +82,19 @@ func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
 		code = errmsg.ERROR_BAD_REQUEST
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  code,
+			"data":    nil,
 			"message": errmsg.GetErrMsg(code),
 		})
 	}
 
 	code = uc.userService.UpdateUserBasicInfo(uint(id), &user)
-
+	var responseData *dto.UserResponse
+	if code == errmsg.SUCCESS {
+		responseData = dto.UserToResponse(&user)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"data":    responseData,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

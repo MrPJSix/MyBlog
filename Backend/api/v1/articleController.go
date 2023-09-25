@@ -21,6 +21,8 @@ type IArticleController interface {
 	GetListByUser(c *gin.Context)
 	UpdateArticle(c *gin.Context)
 	DeleteArticle(c *gin.Context)
+	UpdateSelfArticle(c *gin.Context)
+	DeleteSelfArticle(c *gin.Context)
 }
 
 type ArticleController struct {
@@ -44,8 +46,13 @@ func (ac *ArticleController) CreateArticle(c *gin.Context) {
 		code = ac.articleService.CreateArticle(&data)
 	}
 
+	var responseData *dto.ArticleResponse
+	if code == errmsg.SUCCESS {
+		responseData = dto.ArticleToResponse(&data)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"data":    responseData,
 		"message": errmsg.GetErrMsg(code),
 	})
 }
@@ -53,7 +60,10 @@ func (ac *ArticleController) CreateArticle(c *gin.Context) {
 func (ac *ArticleController) GetArticleInfo(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	article, code := ac.articleService.GetArticleInfo(uint(id))
-	responseData := dto.ArticleToResponse(&article)
+	var responseData *dto.ArticleResponse
+	if code == errmsg.SUCCESS {
+		responseData = dto.ArticleToResponse(&article)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    responseData,
@@ -129,14 +139,19 @@ func (ac *ArticleController) UpdateArticle(c *gin.Context) {
 		code = errmsg.ERROR_BAD_REQUEST
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  code,
+			"data":    nil,
 			"message": errmsg.GetErrMsg(code),
 		})
 	}
 
 	code = ac.articleService.UpdateArticle(uint(id), &data)
-
+	var responseData *dto.ArticleResponse
+	if code == errmsg.SUCCESS {
+		responseData = dto.ArticleToResponse(&data)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"data":    responseData,
 		"message": errmsg.GetErrMsg(code),
 	})
 }
@@ -150,4 +165,11 @@ func (ac *ArticleController) DeleteArticle(c *gin.Context) {
 		"status":  code,
 		"message": errmsg.GetErrMsg(code),
 	})
+}
+
+func (ac *ArticleController) UpdateSelfArticle(c *gin.Context) {
+	// Todo
+}
+func (ac *ArticleController) DeleteSelfArticle(c *gin.Context) {
+	// Todo
 }

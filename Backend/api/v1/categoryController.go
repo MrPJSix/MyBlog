@@ -43,6 +43,7 @@ func (cc *CategoryController) CreateCategory(c *gin.Context) {
 	c.JSON(
 		http.StatusOK, gin.H{
 			"status":  code,
+			"data":    &category,
 			"message": errmsg.GetErrMsg(code),
 		},
 	)
@@ -91,6 +92,7 @@ func (cc *CategoryController) UpdateCategory(c *gin.Context) {
 	c.JSON(
 		http.StatusOK, gin.H{
 			"status":  code,
+			"data":    &category,
 			"message": errmsg.GetErrMsg(code),
 		},
 	)

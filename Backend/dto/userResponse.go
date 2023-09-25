@@ -10,8 +10,8 @@ type UserResponse struct {
 	Role     uint8  `json:"role"`
 }
 
-func UserToResponse(user *model.User) UserResponse {
-	return UserResponse{
+func UserToResponse(user *model.User) *UserResponse {
+	return &UserResponse{
 		ID:       user.ID,
 		Username: user.Username,
 		FullName: user.FullName,
@@ -20,8 +20,8 @@ func UserToResponse(user *model.User) UserResponse {
 	}
 }
 
-func UserSliceToResponse(users []model.User) []UserResponse {
-	var responses []UserResponse
+func UserSliceToResponse(users []model.User) []*UserResponse {
+	var responses []*UserResponse
 	for _, user := range users {
 		response := UserToResponse(&user)
 		responses = append(responses, response)

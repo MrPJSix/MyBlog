@@ -29,8 +29,8 @@ type Category struct {
 	CategoryName string `json:"category_name"`
 }
 
-func ArticleToResponse(article *model.Article) ArticleResponse {
-	return ArticleResponse{
+func ArticleToResponse(article *model.Article) *ArticleResponse {
+	return &ArticleResponse{
 		ID:           article.ID,
 		CreatedAt:    article.CreatedAt,
 		UpdatedAt:    article.UpdatedAt,
@@ -51,8 +51,8 @@ func ArticleToResponse(article *model.Article) ArticleResponse {
 	}
 }
 
-func ArticleSliceToResponse(articles []model.Article) []ArticleResponse {
-	var responses []ArticleResponse
+func ArticleSliceToResponse(articles []model.Article) []*ArticleResponse {
+	var responses []*ArticleResponse
 	for _, article := range articles {
 		response := ArticleToResponse(&article)
 		responses = append(responses, response)

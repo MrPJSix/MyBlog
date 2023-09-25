@@ -9,6 +9,8 @@ import (
 /* ====================================== */
 
 type IArticleRepo interface {
+	createAndPreload(article *model.Article) error
+	updateAndPreload(article *model.Article) error
 	CheckByTitle(title string) int
 	Create(article *model.Article) int
 	GetInfo(id uint) (model.Article, int)
@@ -27,6 +29,29 @@ func NewArticleRepo() *ArticleRepo {
 }
 
 /* ====================================== */
+
+// 创建并且预加载
+func (ar *ArticleRepo) createAndPreload(article *model.Article) error {
+	if err := db.Create(article).Error; err != nil {
+		return err
+	}
+	return db.Preload("Category").Preload("User").Where("id = ?", article.ID).First(article).Error
+}
+
+// 更新并且预加载
+func (ar *ArticleRepo) updateAndPreload(article *model.Article) error {
+	var maps = make(map[string]interface{})
+	maps["title"] = article.Title
+	maps["category_id"] = article.CategoryID
+	maps["desc"] = article.Desc
+	maps["content"] = article.Content
+
+	err := db.Model(&model.Article{}).Where("id = ?", article.ID).Updates(&maps).Error
+	if err != nil {
+		return err
+	}
+	return db.Preload("Category").Preload("User").Where("id = ?", article.ID).First(article).Error
+}
 
 // 检查标题是否已存在
 func (ar *ArticleRepo) CheckByTitle(title string) int {
@@ -47,7 +72,7 @@ func (ar *ArticleRepo) Create(article *model.Article) int {
 	if code != errmsg.SUCCESS {
 		return code
 	}
-	err = db.Create(article).Error
+	err := ar.createAndPreload(article)
 	if err != nil {
 		return errmsg.ERROR
 	}
@@ -57,7 +82,7 @@ func (ar *ArticleRepo) Create(article *model.Article) int {
 // 查询单个文章
 func (ar *ArticleRepo) GetInfo(id uint) (model.Article, int) {
 	var art model.Article
-	err = db.Where("id = ?", id).Preload("Category").Preload("User").First(&art).Error
+	err := db.Where("id = ?", id).Preload("Category").Preload("User").First(&art).Error
 	if err != nil {
 		return art, errmsg.ERROR_ARTICLE_NOT_EXIST
 	}
@@ -70,7 +95,7 @@ func (ar *ArticleRepo) GetList(pageSize, offset int) ([]model.Article, int64, in
 	var articleList []model.Article
 	var total int64
 
-	err = db.Preload("Category").Preload("User").
+	err := db.Preload("Category").Preload("User").
 		Order("created_at desc").
 		Limit(pageSize).Offset(offset).
 		Find(&articleList).Count(&total).Error
@@ -85,7 +110,7 @@ func (ar *ArticleRepo) GetListByTitle(title string, pageSize, offset int) ([]mod
 	var articleList []model.Article
 	var total int64
 
-	err = db.Preload("Category").Preload("User").
+	err := db.Preload("Category").Preload("User").
 		Order("created_at DESC").
 		Where("title LIKE ?", "%"+title+"%").
 		Limit(pageSize).Offset(offset).
@@ -101,7 +126,7 @@ func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) 
 	var cateArtList []model.Article
 	var total int64
 
-	err = db.Preload("Category").Preload("User").
+	err := db.Preload("Category").Preload("User").
 		Limit(pageSize).Offset(offset).
 		Where("category_id = ?", categoryID).
 		Find(&cateArtList).Count(&total).Error
@@ -116,7 +141,7 @@ func (ar *ArticleRepo) GetListByUser(userID uint, pageSize, offset int) ([]model
 	var articles []model.Article
 	var total int64
 
-	err = db.Preload("Category").
+	err := db.Preload("Category").
 		Limit(pageSize).Offset(offset).
 		Where("user_id = ?", userID).
 		Find(&articles).Count(&total).Error
@@ -128,14 +153,8 @@ func (ar *ArticleRepo) GetListByUser(userID uint, pageSize, offset int) ([]model
 
 // 编辑文章
 func (ar *ArticleRepo) Update(id uint, article *model.Article) int {
-	var maps = make(map[string]interface{})
-	maps["title"] = article.Title
-	maps["category_id"] = article.CategoryID
-	maps["desc"] = article.Desc
-	maps["content"] = article.Content
-	maps["img"] = article.Img
-
-	err = db.Model(&model.Article{}).Where("id = ?", id).Updates(&maps).Error
+	article.ID = id
+	err := ar.updateAndPreload(article)
 	if err != nil {
 		return errmsg.ERROR
 	}
@@ -145,7 +164,7 @@ func (ar *ArticleRepo) Update(id uint, article *model.Article) int {
 // 删除文章
 func (ar *ArticleRepo) Delete(id uint) int {
 	var art model.Article
-	err = db.Where("id = ?", id).Delete(&art).Error
+	err := db.Where("id = ?", id).Delete(&art).Error
 	if err != nil {
 		return errmsg.ERROR
 	}

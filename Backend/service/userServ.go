@@ -59,6 +59,6 @@ func (us *UserService) DeleteUser(id uint) int {
 	return us.userRepo.Delete(id)
 }
 
-func (us *UserService) CheckPassword(username, password string) int {
-	return us.userRepo.CheckPassword(username, password)
+func (us *UserService) CheckPassword(user *model.User) int {
+	return us.userRepo.CheckPassword(user)
 }

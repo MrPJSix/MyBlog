@@ -9,6 +9,7 @@ import (
 /* ====================================== */
 
 type ICommentRepo interface {
+	createAndPreload(comment *model.Comment) error
 	CheckByID(id uint) int
 	Create(comment *model.Comment) int
 	GetByArticleID(articleID uint) ([]model.Comment, int64, int)
@@ -24,6 +25,13 @@ func NewCommentRepo() *CommentRepo {
 
 /* ====================================== */
 
+func (cr *CommentRepo) createAndPreload(comment *model.Comment) error {
+	if err := db.Create(comment).Error; err != nil {
+		return err
+	}
+	return db.Preload("Article").Preload("User").Where("id = ?", comment.ID).First(comment).Error
+}
+
 // 检查评论是否存在
 func (commentRepo *CommentRepo) CheckByID(id uint) int {
 	err := db.Where("id = ?", id).First(&model.Comment{}).Error
@@ -38,7 +46,7 @@ func (commentRepo *CommentRepo) CheckByID(id uint) int {
 
 // 新增评论
 func (commentRepo *CommentRepo) Create(comment *model.Comment) int {
-	err := db.Create(comment).Error
+	err := commentRepo.createAndPreload(comment)
 	if err != nil {
 		return errmsg.ERROR
 	}

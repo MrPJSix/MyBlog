@@ -104,7 +104,7 @@ func (ur *UserRepo) UpdateBasicInfo(id uint, user *model.User) int {
 	var maps = make(map[string]interface{})
 	maps["full_name"] = user.FullName
 	maps["bio"] = user.Bio
-	err := db.Model(&model.User{}).Where("id = ?", id).Updates(maps).Error
+	err := db.Model(&model.User{}).Where("id = ?", id).Updates(maps).First(&user).Error
 	if err != nil {
 		return errmsg.ERROR
 	}
@@ -126,10 +126,13 @@ func (ur *UserRepo) Delete(id uint) int {
 }
 
 // 检查密码
-func (ur *UserRepo) CheckPassword(username, password string) int {
-	var user model.User
-	db.Where("username = ?", username).First(&user)
-	if !securepw.CheckPasswordHash(user.Password, password) {
+func (ur *UserRepo) CheckPassword(user *model.User) int {
+	if code := ur.CheckUsername(user.Username); code != errmsg.ERROR_USERNAME_USED {
+		return code
+	}
+	inputPassword := user.Password
+	db.Where("username = ?", user.Username).First(&user)
+	if !securepw.CheckPasswordHash(user.Password, inputPassword) {
 		return errmsg.ERROR_PASSWORD_WRONG
 	}
 	return errmsg.SUCCESS

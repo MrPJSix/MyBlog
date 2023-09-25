@@ -26,7 +26,7 @@ func InitAdminRouter(group *gin.RouterGroup) {
 
 	// 用户模块的路由接口
 	userController := v1.NewUserController()
-	group.POST("user", userController.CreateUser)
+	group.POST("user", userController.CreateAdminUser)
 	group.GET("users", userController.GetUserList)
 	group.PUT("user/:id", userController.UpdateUserBasicInfo)
 	group.DELETE("user/:id", userController.DeleteUser)

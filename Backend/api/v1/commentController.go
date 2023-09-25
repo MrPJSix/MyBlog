@@ -41,8 +41,14 @@ func (cc *CommentController) CreateComment(c *gin.Context) {
 		code = cc.commentService.CreateComment(&comment)
 	}
 
+	var responseData *dto.CommentResponse
+	if code == errmsg.SUCCESS {
+		responseData = dto.CommentToResponse(&comment)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"data":    responseData,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

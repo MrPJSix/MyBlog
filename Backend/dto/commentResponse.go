@@ -14,8 +14,8 @@ type User struct {
 	FullName string `json:"full_name"`
 }
 
-func CommentToResponse(comment *model.Comment) CommentResponse {
-	return CommentResponse{
+func CommentToResponse(comment *model.Comment) *CommentResponse {
+	return &CommentResponse{
 		ID:        comment.ID,
 		Content:   comment.Content,
 		ArticleID: comment.ArticleID,
@@ -26,8 +26,8 @@ func CommentToResponse(comment *model.Comment) CommentResponse {
 	}
 }
 
-func CommentSliceToResponse(comments []model.Comment) []CommentResponse {
-	var responses []CommentResponse
+func CommentSliceToResponse(comments []model.Comment) []*CommentResponse {
+	var responses []*CommentResponse
 	for _, comment := range comments {
 		response := CommentToResponse(&comment)
 		responses = append(responses, response)

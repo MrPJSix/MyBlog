@@ -83,7 +83,7 @@ func (cr *CategoryRepo) Update(id uint, category *model.Category) int {
 	var maps = make(map[string]interface{})
 	maps["name"] = category.Name
 	log.Println(maps)
-	err := db.Model(&cate).Where("id = ?", id).Updates(maps).Error
+	err := db.Model(&cate).Where("id = ?", id).Updates(maps).First(category).Error
 	if err != nil {
 		return errmsg.ERROR
 	}
