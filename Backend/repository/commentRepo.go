@@ -26,7 +26,7 @@ func NewCommentRepo() *CommentRepo {
 
 // 检查评论是否存在
 func (commentRepo *CommentRepo) CheckByID(id uint) int {
-	err = db.Where("id = ?", id).First(&model.Comment{}).Error
+	err := db.Where("id = ?", id).First(&model.Comment{}).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return errmsg.ERROR_COMMENT_NOT_EXIST
@@ -38,7 +38,7 @@ func (commentRepo *CommentRepo) CheckByID(id uint) int {
 
 // 新增评论
 func (commentRepo *CommentRepo) Create(comment *model.Comment) int {
-	err = db.Create(comment).Error
+	err := db.Create(comment).Error
 	if err != nil {
 		return errmsg.ERROR
 	}
@@ -49,7 +49,7 @@ func (commentRepo *CommentRepo) Create(comment *model.Comment) int {
 func (commentRepo *CommentRepo) GetByArticleID(articleID uint) ([]model.Comment, int64, int) {
 	var comments []model.Comment
 	var total int64
-	err = db.Preload("Article").
+	err := db.Preload("Article").Preload("User").
 		Where("article_id = ?", articleID).
 		Find(&comments).Count(&total).Error
 	if err != nil {
@@ -64,7 +64,7 @@ func (commentRepo *CommentRepo) Delete(id uint) int {
 	if code != errmsg.SUCCESS {
 		return code
 	}
-	err = db.Where("id = ?", id).Delete(&model.Comment{}).Error
+	err := db.Where("id = ?", id).Delete(&model.Comment{}).Error
 	if err != nil {
 		return errmsg.ERROR
 	}

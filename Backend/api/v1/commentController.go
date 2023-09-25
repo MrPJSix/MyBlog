@@ -10,10 +10,12 @@ import (
 	"strconv"
 )
 
+/* ====================================== */
+
 type ICommentController interface {
-	CreateComment(comment *model.Comment) int
-	GetCommentsByArticleID(articleID uint) ([]model.Comment, int64, int)
-	DeleteComment(id uint) int
+	CreateComment(c *gin.Context)
+	GetCommentsByArticleID(c *gin.Context)
+	DeleteComment(c *gin.Context)
 }
 
 type CommentController struct {
@@ -24,6 +26,8 @@ func NewCommentController() *CommentController {
 	commentService := service.NewCommentService()
 	return &CommentController{commentService}
 }
+
+/* ====================================== */
 
 // 新增评论
 func (cc *CommentController) CreateComment(c *gin.Context) {

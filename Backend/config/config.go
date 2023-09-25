@@ -6,9 +6,11 @@ import (
 )
 
 var (
+	// 服务器配置
 	AppMode  string
 	HttpPort string
 
+	// MySQL配置
 	DbHost     string
 	DbPort     string
 	DbUser     string
