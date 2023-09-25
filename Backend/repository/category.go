@@ -34,7 +34,7 @@ func CreateCate(data *model.Category) int {
 	if code != errmsg.SUCCESS {
 		return code
 	}
-	err = db.Create(&data).Error
+	err = db.Create(data).Error
 	if err != nil {
 		return errmsg.ERROR
 	}

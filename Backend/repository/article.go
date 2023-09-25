@@ -8,7 +8,7 @@ import (
 
 // 新增文章
 func CreateArt(data *model.Article) int {
-	err := db.Create(&data).Error
+	err = db.Create(&data).Error
 	if err != nil {
 		return errmsg.ERROR
 	}
@@ -20,8 +20,10 @@ func GetCateArt(id int, pageSize int, pageNum int) ([]model.Article, int, int64)
 	var cateArtList []model.Article
 	var total int64
 
-	err := db.Preload("Category").Limit(pageSize).Offset((pageNum-1)*pageSize).Where("cid = ?", id).Find(&cateArtList).Error
-	db.Model(&cateArtList).Where("cid = ?", id).Count(&total)
+	err = db.Preload("Category").Preload("User").
+		Limit(pageSize).Offset((pageNum-1)*pageSize).
+		Where("category_id = ?", id).Find(&cateArtList).Count(&total).Error
+	// db.Model(&cateArtList).Where("category_id = ?", id).Count(&total)
 	if err != nil {
 		return cateArtList, errmsg.ERROR_CATE_NOT_EXIST, 0
 	}
@@ -31,7 +33,7 @@ func GetCateArt(id int, pageSize int, pageNum int) ([]model.Article, int, int64)
 // 查询单个文章
 func GetArtInfo(id int) (model.Article, int) {
 	var art model.Article
-	err := db.Where("id = ?", id).Preload("Category").First(&art).Error
+	err = db.Where("id = ?", id).Preload("Category").Preload("User").First(&art).Error
 	if err != nil {
 		return art, errmsg.ERROR_ARTICLE_NOT_EXIST
 	}
@@ -55,7 +57,10 @@ func GetArt(pageSize int, pageNum int) ([]model.Article, int, int64) {
 		offset = -1
 	}
 
-	err = db.Limit(pageSize).Offset(offset).Order("created_at desc").Find(&articleList).Error
+	err = db.Preload("Category").Preload("User").
+		Order("created_at desc").
+		Limit(pageSize).Offset(offset).
+		Find(&articleList).Error
 	db.Model(&articleList).Count(&total)
 	if err != nil {
 		return articleList, errmsg.ERROR, 0
@@ -78,11 +83,15 @@ func SearchArt(title string, pageSize int, pageNum int) ([]model.Article, int, i
 	if pageNum == 0 {
 		offset = -1
 	}
-
-	err = db.Select("article.id, title, img, created_at, updated_at, `desc`, comment_count, read_count, Category.Name").
-		Order("Created_At DESC").Joins("Category").Where("title LIKE ?", "%"+title+"%").
-		Limit(pageSize).Offset(offset).Find(&articleList).Error
-	db.Model(&articleList).Where("title LIKE ?", title+"%").Count(&total)
+	//err = db.Select("article.id, title, img, article.created_at, article.updated_at, `desc`, comment_count, read_count, category.id, category.name, user.id, user.full_name").
+	//	Order("created_at DESC").Joins("Category").Joins("User").Where("title LIKE ?", "%"+title+"%").
+	//	Limit(pageSize).Offset(offset).Find(&articleList).Error
+	err = db.Preload("Category").Preload("User").
+		Order("created_at DESC").
+		Where("title LIKE ?", "%"+title+"%").
+		Limit(pageSize).Offset(offset).
+		Find(&articleList).Error
+	db.Model(&articleList).Where("title LIKE ?", "%"+title+"%").Count(&total)
 	if err != nil {
 		return nil, errmsg.ERROR, 0
 	}
@@ -94,12 +103,12 @@ func EditArt(id int, data *model.Article) int {
 	var art model.Article
 	var maps = make(map[string]interface{})
 	maps["title"] = data.Title
-	maps["cid"] = data.CategoryID
+	maps["category_id"] = data.CategoryID
 	maps["desc"] = data.Desc
 	maps["content"] = data.Content
 	maps["img"] = data.Img
 
-	err := db.Model(&art).Where("id = ?", id).Updates(&maps).Error
+	err = db.Model(&art).Where("id = ?", id).Updates(&maps).Error
 	if err != nil {
 		return errmsg.ERROR
 	}
@@ -109,7 +118,7 @@ func EditArt(id int, data *model.Article) int {
 // 删除文章
 func DeleteArt(id int) int {
 	var art model.Article
-	err := db.Where("id = ?", id).Delete(&art).Error
+	err = db.Where("id = ?", id).Delete(&art).Error
 	if err != nil {
 		return errmsg.ERROR
 	}

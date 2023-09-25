@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	"myblog.backend/dto"
 	"myblog.backend/model"
 	"myblog.backend/repository"
 	"myblog.backend/utils/errmsg"
@@ -32,21 +33,13 @@ func GetCateArt(c *gin.Context) {
 	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	if pageSize >= 100 {
-		pageSize = 100
-	} else if pageSize <= 0 {
-		pageSize = 10
-	}
+	articles, code, total := repository.GetCateArt(id, pageSize, pageNum)
 
-	if pageNum == 0 {
-		pageNum = 1
-	}
-
-	data, code, total := repository.GetCateArt(id, pageSize, pageNum)
+	responseData := dto.ArticleSliceToResponse(articles)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
-		"data":    data,
+		"data":    responseData,
 		"total":   total,
 		"message": errmsg.GetErrMsg(code),
 	})
@@ -55,10 +48,11 @@ func GetCateArt(c *gin.Context) {
 // 查询文章
 func GetArtInfo(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	data, code := repository.GetArtInfo(id)
+	article, code := repository.GetArtInfo(id)
+	responseData := dto.ArticleToResponse(&article)
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
-		"data":    data,
+		"data":    responseData,
 		"message": errmsg.GetErrMsg(code),
 	})
 }
@@ -70,18 +64,20 @@ func GetArtList(c *gin.Context) {
 	title := c.Query("title")
 
 	if len(title) == 0 {
-		data, code, total := repository.GetArt(pageSize, pageNum)
+		articles, code, total := repository.GetArt(pageSize, pageNum)
+		responseData := dto.ArticleSliceToResponse(articles)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
-			"data":    data,
+			"data":    responseData,
 			"total":   total,
 			"message": errmsg.GetErrMsg(code),
 		})
 	} else {
-		data, code, total := repository.SearchArt(title, pageSize, pageNum)
+		articles, code, total := repository.SearchArt(title, pageSize, pageNum)
+		responseData := dto.ArticleSliceToResponse(articles)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
-			"data":    data,
+			"data":    responseData,
 			"total":   total,
 			"meesage": errmsg.GetErrMsg(code),
 		})

@@ -22,6 +22,9 @@ const (
 	// code=3000... 分类模块错误
 	ERROR_CATENAME_USED  = 3001
 	ERROR_CATE_NOT_EXIST = 3002
+
+	// code=4000... 评论模块错误
+	ERROR_COMMENT_NOT_EXIST = 4001
 )
 
 var codeMsg = map[int]string{
@@ -46,6 +49,9 @@ var codeMsg = map[int]string{
 	// 分类模块错误
 	ERROR_CATENAME_USED:  "该分类已存在",
 	ERROR_CATE_NOT_EXIST: "该分类不存在",
+
+	// 评论模块错误
+	ERROR_COMMENT_NOT_EXIST: "该评论不存在",
 }
 
 func GetErrMsg(code int) string {

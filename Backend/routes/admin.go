@@ -26,4 +26,10 @@ func InitAdminRouter(group *gin.RouterGroup) {
 	group.GET("users", v1.GetUsers)
 	group.PUT("user/:id", v1.EditUser)
 	group.DELETE("user/:id", v1.DeleteUser)
+
+	// 评论模块的路由接口
+	commentController := v1.NewCommentController()
+	group.POST("comment", commentController.CreateComment)
+	group.GET("comment/article/:id", commentController.GetCommentsByArticleID)
+	group.DELETE("comment/:id", commentController.DeleteComment)
 }
