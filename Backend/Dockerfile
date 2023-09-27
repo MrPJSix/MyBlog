@@ -1,5 +1,7 @@
 # 使用官方的Go映像作为基础映像
 FROM golang:1.19 AS builder
+# 设置Go代理为Goproxy
+ENV GOPROXY=https://goproxy.io,direct
 # 设置工作目录
 WORKDIR /app
 # 复制go mod和sum文件并下载所有依赖项

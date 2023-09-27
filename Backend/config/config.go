@@ -3,6 +3,8 @@ package config
 import (
 	"gopkg.in/ini.v1"
 	"log"
+	"path/filepath"
+	"runtime"
 )
 
 var (
@@ -20,7 +22,7 @@ var (
 )
 
 func init() {
-	file, err := ini.Load("config/config.ini")
+	file, err := ini.Load(getConfigPath())
 	if err != nil {
 		log.Println("读取配置文件出错！", err)
 	}
@@ -41,4 +43,10 @@ func InitDatabaseConfig(file *ini.File) {
 	DbUser = file.Section(database).Key("DbUser").String()
 	DbPassword = file.Section(database).Key("DbPassword").String()
 	DbName = file.Section(database).Key("DbName").String()
+}
+
+func getConfigPath() string {
+	_, currentFilePath, _, _ := runtime.Caller(0)
+	rootDir := filepath.Dir(filepath.Dir(currentFilePath))
+	return filepath.Join(rootDir, "config", "config.ini")
 }
