@@ -10,7 +10,7 @@ import (
 
 type ICommentRepo interface {
 	createAndPreload(comment *model.Comment) error
-	CheckByID(id uint) int
+	GetByID(id uint) (*model.Comment, int)
 	Create(comment *model.Comment) int
 	GetByArticleID(articleID uint) ([]model.Comment, int64, int)
 	Delete(id uint) int
@@ -33,15 +33,16 @@ func (cr *CommentRepo) createAndPreload(comment *model.Comment) error {
 }
 
 // 检查评论是否存在
-func (commentRepo *CommentRepo) CheckByID(id uint) int {
+func (commentRepo *CommentRepo) GetByID(id uint) (*model.Comment, int) {
+	var comment model.Comment
 	err := db.Where("id = ?", id).First(&model.Comment{}).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return errmsg.ERROR_COMMENT_NOT_EXIST
+			return nil, errmsg.ERROR_COMMENT_NOT_EXIST
 		}
-		return errmsg.ERROR
+		return nil, errmsg.ERROR
 	}
-	return errmsg.SUCCESS
+	return &comment, errmsg.SUCCESS
 }
 
 // 新增评论
@@ -68,7 +69,7 @@ func (commentRepo *CommentRepo) GetByArticleID(articleID uint) ([]model.Comment,
 
 // 删除评论
 func (commentRepo *CommentRepo) Delete(id uint) int {
-	code := commentRepo.CheckByID(id)
+	_, code := commentRepo.GetByID(id)
 	if code != errmsg.SUCCESS {
 		return code
 	}

@@ -13,26 +13,28 @@ import (
 
 /* ====================================== */
 
-type IUserController interface {
-	Login(c *gin.Context)
-	Register(c *gin.Context)
+type IAdminController interface {
+	AdminLogin(c *gin.Context)
+	CreateAdmin(c *gin.Context)
 	GetUserInfo(c *gin.Context)
+	GetUserList(c *gin.Context)
 	UpdateUserBasicInfo(c *gin.Context)
+	DeleteUser(c *gin.Context)
 }
 
-type UserController struct {
+type AdminController struct {
 	userService *service.UserService
 }
 
-func NewUserController() *UserController {
+func NewAdminController() *AdminController {
 	userService := service.NewUserService()
-	return &UserController{userService}
+	return &AdminController{userService}
 }
 
 /* ====================================== */
 
-// 登录
-func (uc *UserController) Login(c *gin.Context) {
+// 管理员登录
+func (ac *AdminController) AdminLogin(c *gin.Context) {
 	var user model.User
 	var code int
 	err := c.ShouldBindJSON(&user)
@@ -44,9 +46,15 @@ func (uc *UserController) Login(c *gin.Context) {
 		})
 		return
 	}
-	code = uc.userService.CheckPassword(&user)
+	code = ac.userService.CheckPassword(&user)
 	if code != errmsg.SUCCESS {
 		c.JSON(http.StatusOK, gin.H{
+			"status":  code,
+			"message": errmsg.GetErrMsg(code),
+		})
+	} else if code == errmsg.SUCCESS && user.Role == 2 {
+		code = errmsg.ERROR_USER_NO_RIGHT
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"status":  code,
 			"message": errmsg.GetErrMsg(code),
 		})
@@ -61,11 +69,12 @@ func (uc *UserController) Login(c *gin.Context) {
 	}
 }
 
-// 注册
-func (uc *UserController) Register(c *gin.Context) {
-	var rq dto.RegisterRequest
+// 创建管理员账号
+func (ac *AdminController) CreateAdmin(c *gin.Context) {
+	var user model.User
 	var code int
-	err := c.ShouldBindJSON(&rq)
+	err := c.ShouldBindJSON(&user)
+	user.Role = 1 // 授权管理员
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -75,18 +84,22 @@ func (uc *UserController) Register(c *gin.Context) {
 		})
 		return
 	}
-	if rq.Password != rq.ConfirmPassword {
-		code = errmsg.ERROR_PASSWORDS_NOT_EQUAL
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  code,
-			"data":    nil,
-			"message": errmsg.GetErrMsg(code),
-		})
-		return
+	code = ac.userService.CreateUser(&user)
+	var responseData *dto.UserResponse
+	if code == errmsg.SUCCESS {
+		responseData = dto.UserToResponse(&user)
 	}
-	user := dto.RegisterRequestToUser(&rq)
-	user.Role = 2
-	code = uc.userService.CreateUser(user)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+// 查询用户信息
+func (ac *AdminController) GetUserInfo(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	user, code := ac.userService.GetUserByID(uint(id))
 	var responseData *dto.UserResponse
 	if code == errmsg.SUCCESS {
 		responseData = dto.UserToResponse(user)
@@ -98,22 +111,24 @@ func (uc *UserController) Register(c *gin.Context) {
 	})
 }
 
-func (uc *UserController) GetUserInfo(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	user, code := uc.userService.GetUserByID(uint(id))
-	var responseData *dto.UserResponse
-	if code == errmsg.SUCCESS {
-		responseData = dto.UserToResponse(user)
-	}
+// 查询用户列表（分页）
+func (ac *AdminController) GetUserList(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+
+	users, total, code := ac.userService.GetUserList(pageSize, pageNum)
+	responseData := dto.UserSliceToResponse(users)
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    responseData,
+		"total":   total,
 		"message": errmsg.GetErrMsg(code),
 	})
 }
 
 // 编辑用户基本信息（只限于FullName, Bio）
-func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
+func (ac *AdminController) UpdateUserBasicInfo(c *gin.Context) {
 	var user model.User
 	var code int
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -132,7 +147,7 @@ func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
 	requester.ID = c.MustGet("user_id").(uint)
 	requester.Role = c.MustGet("role").(uint8)
 
-	code = uc.userService.UpdateUserBasicInfo(&requester, uint(id), &user)
+	code = ac.userService.UpdateUserBasicInfo(&requester, uint(id), &user)
 	var responseData *dto.UserResponse
 	if code == errmsg.SUCCESS {
 		responseData = dto.UserToResponse(&user)
@@ -140,6 +155,16 @@ func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+// 删除用户
+func (ac *AdminController) DeleteUser(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	code := ac.userService.DeleteUser(uint(id))
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

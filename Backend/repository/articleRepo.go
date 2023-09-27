@@ -13,13 +13,14 @@ type IArticleRepo interface {
 	updateAndPreload(article *model.Article) error
 	CheckByTitle(title string) int
 	Create(article *model.Article) int
-	GetInfo(id uint) (model.Article, int)
+	GetInfo(id uint) (*model.Article, int)
 	GetList(pageSize, offset int) ([]model.Article, int64, int)
 	GetListByTitle(title string, pageSize, offset int) ([]model.Article, int64, int)
 	GetListByCategory(categoryID uint, pageSize, offset int) ([]model.Article, int64, int)
 	GetListByUser(userID uint, pageSize, offset int) ([]model.Article, int64, int)
 	Update(id uint, article *model.Article) int
 	Delete(id uint) int
+	IncreaseReadCount(id uint)
 }
 
 type ArticleRepo struct{}
@@ -80,14 +81,13 @@ func (ar *ArticleRepo) Create(article *model.Article) int {
 }
 
 // 查询单个文章
-func (ar *ArticleRepo) GetInfo(id uint) (model.Article, int) {
+func (ar *ArticleRepo) GetInfo(id uint) (*model.Article, int) {
 	var art model.Article
 	err := db.Where("id = ?", id).Preload("Category").Preload("User").First(&art).Error
 	if err != nil {
-		return art, errmsg.ERROR_ARTICLE_NOT_EXIST
+		return nil, errmsg.ERROR_ARTICLE_NOT_EXIST
 	}
-	db.Model(&art).Where("id = ?", id).UpdateColumn("read_count", gorm.Expr("read_count + ?", 1))
-	return art, errmsg.SUCCESS
+	return &art, errmsg.SUCCESS
 }
 
 // 查询文章列表
@@ -169,4 +169,9 @@ func (ar *ArticleRepo) Delete(id uint) int {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCESS
+}
+
+// 增加浏览量
+func (ar *ArticleRepo) IncreaseReadCount(id uint) {
+	db.Model(&model.Article{}).Where("id = ?", id).UpdateColumn("read_count", gorm.Expr("read_count + ?", 1))
 }

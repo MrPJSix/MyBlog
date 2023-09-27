@@ -16,13 +16,10 @@ type IArticleController interface {
 	CreateArticle(c *gin.Context)
 	GetArticleInfo(c *gin.Context)
 	GetArticleList(c *gin.Context)
-	GetListByTitle(c *gin.Context)
 	GetListByCategory(c *gin.Context)
 	GetListByUser(c *gin.Context)
 	UpdateArticle(c *gin.Context)
 	DeleteArticle(c *gin.Context)
-	UpdateSelfArticle(c *gin.Context)
-	DeleteSelfArticle(c *gin.Context)
 }
 
 type ArticleController struct {
@@ -43,6 +40,7 @@ func (ac *ArticleController) CreateArticle(c *gin.Context) {
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
 	} else {
+		data.UserID = c.MustGet("user_id").(uint)
 		code = ac.articleService.CreateArticle(&data)
 	}
 
@@ -62,7 +60,7 @@ func (ac *ArticleController) GetArticleInfo(c *gin.Context) {
 	article, code := ac.articleService.GetArticleInfo(uint(id))
 	var responseData *dto.ArticleResponse
 	if code == errmsg.SUCCESS {
-		responseData = dto.ArticleToResponse(&article)
+		responseData = dto.ArticleToResponse(article)
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
@@ -144,7 +142,11 @@ func (ac *ArticleController) UpdateArticle(c *gin.Context) {
 		})
 	}
 
-	code = ac.articleService.UpdateArticle(uint(id), &data)
+	var requester model.User
+	requester.ID = c.MustGet("user_id").(uint)
+	requester.Role = c.MustGet("role").(uint8)
+
+	code = ac.articleService.UpdateArticle(&requester, uint(id), &data)
 	var responseData *dto.ArticleResponse
 	if code == errmsg.SUCCESS {
 		responseData = dto.ArticleToResponse(&data)
@@ -158,18 +160,15 @@ func (ac *ArticleController) UpdateArticle(c *gin.Context) {
 
 func (ac *ArticleController) DeleteArticle(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
+	var requester model.User
 
-	code := ac.articleService.DeleteArticle(uint(id))
+	requester.ID = c.MustGet("user_id").(uint)
+	requester.Role = c.MustGet("role").(uint8)
+
+	code := ac.articleService.DeleteArticle(&requester, uint(id))
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"message": errmsg.GetErrMsg(code),
 	})
-}
-
-func (ac *ArticleController) UpdateSelfArticle(c *gin.Context) {
-	// Todo
-}
-func (ac *ArticleController) DeleteSelfArticle(c *gin.Context) {
-	// Todo
 }

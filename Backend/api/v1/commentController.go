@@ -38,6 +38,7 @@ func (cc *CommentController) CreateComment(c *gin.Context) {
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
 	} else {
+		comment.UserID = c.MustGet("user_id").(uint)
 		code = cc.commentService.CreateComment(&comment)
 	}
 
@@ -74,8 +75,12 @@ func (cc *CommentController) GetCommentsByArticleID(c *gin.Context) {
 func (cc *CommentController) DeleteComment(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	commentID := uint(id)
+	var requester model.User
+	requester.ID = c.MustGet("user_id").(uint)
+	requester.Role = c.MustGet("role").(uint8)
 
-	code := cc.commentService.DeleteComment(commentID)
+	code := cc.commentService.DeleteComment(&requester,
+		commentID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,

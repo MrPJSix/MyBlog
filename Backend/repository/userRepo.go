@@ -14,10 +14,11 @@ type IUserRepo interface {
 	CheckUserID(id uint) int
 	CheckFullName(fullName string) int
 	Create(user *model.User) int
+	GetByID(id uint) (*model.User, int)
 	GetList(pageSize, offset int) ([]model.User, int64, int)
 	UpdateBasicInfo(id uint, user *model.User) int
 	Delete(id uint) int
-	CheckPassword(username, password string) int
+	CheckPassword(user *model.User) int
 	// Todo UpdatePassword(username, password string) int
 	// Todo ResetPassword(username string) int
 	// Todo UpdateRole(username string) int
@@ -86,6 +87,18 @@ func (ur *UserRepo) Create(user *model.User) int {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCESS
+}
+
+func (ur *UserRepo) GetByID(id uint) (*model.User, int) {
+	var user model.User
+	err := db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errmsg.ERROR_USER_NOT_EXIST
+		}
+		return nil, errmsg.ERROR
+	}
+	return &user, errmsg.SUCCESS
 }
 
 // 查询用户列表

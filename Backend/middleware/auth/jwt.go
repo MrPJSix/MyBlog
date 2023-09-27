@@ -13,15 +13,17 @@ import (
 var jwtKey = []byte(config.JwtKey)
 
 type MyCustomClaims struct {
+	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
 	Role     uint8  `json:"role"`
 	jwt.RegisteredClaims
 }
 
 // 生成Token
-func GenerateToken(username string, role uint8) (string, int) {
+func GenerateToken(userID uint, username string, role uint8) (string, int) {
 	expireTime := time.Now().Add(24 * time.Hour)
 	setClaims := MyCustomClaims{
+		userID,
 		username,
 		role,
 		jwt.RegisteredClaims{
@@ -96,6 +98,7 @@ func JwtAuth() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		c.Set("user_id", claims.UserID)
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
 		c.Next()
