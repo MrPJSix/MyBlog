@@ -35,7 +35,7 @@ func InitServerConfig(file *ini.File) {
 }
 
 func InitDatabaseConfig(file *ini.File) {
-	database := "database-" + AppMode
+	database := "database-" + "production" //AppMode
 	DbHost = file.Section(database).Key("DbHost").String()
 	DbPort = file.Section(database).Key("DbPort").String()
 	DbUser = file.Section(database).Key("DbUser").String()
