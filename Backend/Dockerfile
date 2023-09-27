@@ -15,6 +15,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 FROM scratch
 # 从builder阶段复制执行文件和config.ini到当前阶段
 COPY --from=builder /app/main /main
-COPY ./config/config.ini /app/config/config.ini
+COPY ./config/config.ini /config/config.ini
 # 设置应用程序为Docker容器的默认执行命令
 CMD ["/main"]
