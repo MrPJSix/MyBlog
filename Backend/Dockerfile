@@ -13,7 +13,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 # 使用scratch作为基础映像，这是一个很小的映像，不包含任何额外的文件
 FROM scratch
-# 从builder阶段复制执行文件到当前阶段
+# 从builder阶段复制执行文件和config.ini到当前阶段
 COPY --from=builder /app/main /main
+COPY --from=builder /app/config/config.ini /app/config/config.ini
 # 设置应用程序为Docker容器的默认执行命令
 CMD ["/main"]

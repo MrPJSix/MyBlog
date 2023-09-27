@@ -3,8 +3,6 @@ package config
 import (
 	"gopkg.in/ini.v1"
 	"log"
-	"path/filepath"
-	"runtime"
 )
 
 var (
@@ -22,7 +20,7 @@ var (
 )
 
 func init() {
-	file, err := ini.Load(getConfigPath())
+	file, err := ini.Load("config/config.ini")
 	if err != nil {
 		log.Println("读取配置文件出错！", err)
 	}
@@ -37,16 +35,10 @@ func InitServerConfig(file *ini.File) {
 }
 
 func InitDatabaseConfig(file *ini.File) {
-	database := "database-" + "production" //AppMode
+	database := "database-" + AppMode //"production" //AppMode
 	DbHost = file.Section(database).Key("DbHost").String()
 	DbPort = file.Section(database).Key("DbPort").String()
 	DbUser = file.Section(database).Key("DbUser").String()
 	DbPassword = file.Section(database).Key("DbPassword").String()
 	DbName = file.Section(database).Key("DbName").String()
-}
-
-func getConfigPath() string {
-	_, currentFilePath, _, _ := runtime.Caller(0)
-	rootDir := filepath.Dir(filepath.Dir(currentFilePath))
-	return filepath.Join(rootDir, "config", "config.ini")
 }
