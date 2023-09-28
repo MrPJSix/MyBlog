@@ -11,10 +11,17 @@ RUN go mod download
 COPY . .
 # 构建应用程序
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
-# 使用scratch作为基础映像，这是一个很小的映像，不包含任何额外的文件
+# 复制所需的时区文件
+COPY /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+# 使用scratch作为基础映像
 FROM scratch
 # 从builder阶段复制执行文件和config.ini到当前阶段
 COPY --from=builder /app/main /main
 COPY ./config/config.ini /config/config.ini
+# 从builder阶段复制时区文件
+COPY --from=builder /etc/localtime /etc/localtime
+# 设置时区环境变量
+ENV TZ=Asia/Shanghai
 # 设置应用程序为Docker容器的默认执行命令
 CMD ["/main"]
