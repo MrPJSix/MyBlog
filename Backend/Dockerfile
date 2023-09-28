@@ -15,10 +15,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 # 使用alpine作为基础映像
 FROM alpine:latest
 
-# 从builder阶段复制时区文件到当前阶段
-COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-RUN echo "Asia/Shanghai" > /etc/timezone
-ENV TZ=Asia/Shanghai
+# 使用 debian:bullseye-slim 作为基础映像
+FROM debian:bullseye-slim
+
+# 设置时区
+RUN apt-get update && apt-get install -y tzdata && \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    apt-get remove -y tzdata && apt-get autoremove -y && apt-get clean
 
 # 从builder阶段复制执行文件到当前阶段
 COPY --from=builder /app/main /main
