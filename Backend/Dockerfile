@@ -11,18 +11,16 @@ RUN go mod download
 COPY . .
 # 构建应用程序
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+# 复制所需的时区文件
+COPY /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 # 使用alpine作为基础映像
 FROM alpine:latest
 
-# 使用 debian:bullseye-slim 作为基础映像
-FROM debian:bullseye-slim
-
 # 设置时区
-RUN apt-get update && apt-get install -y tzdata && \
-    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone && \
-    apt-get remove -y tzdata && apt-get autoremove -y && apt-get clean
+RUN apk --no-cache add tzdata && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
 
 # 从builder阶段复制执行文件到当前阶段
 COPY --from=builder /app/main /main
