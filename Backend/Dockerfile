@@ -15,9 +15,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 # 使用alpine作为基础映像
 FROM alpine:latest
 
-# 设置时区
-RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone
+# 从builder阶段复制时区文件到当前阶段
+COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN echo "Asia/Shanghai" > /etc/timezone
 ENV TZ=Asia/Shanghai
 
 # 从builder阶段复制执行文件到当前阶段
