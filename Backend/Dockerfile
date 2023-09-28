@@ -11,17 +11,18 @@ RUN go mod download
 COPY . .
 # 构建应用程序
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
-# 复制所需的时区文件
-COPY /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-# 使用scratch作为基础映像
-FROM scratch
-# 从builder阶段复制执行文件和config.ini到当前阶段
+# 使用alpine作为基础映像
+FROM alpine:latest
+
+# 设置时区
+RUN apk --no-cache add tzdata && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
+
+# 从builder阶段复制执行文件到当前阶段
 COPY --from=builder /app/main /main
 COPY ./config/config.ini /config/config.ini
-# 从builder阶段复制时区文件
-COPY --from=builder /etc/localtime /etc/localtime
-# 设置时区环境变量
-ENV TZ=Asia/Shanghai
+
 # 设置应用程序为Docker容器的默认执行命令
 CMD ["/main"]
