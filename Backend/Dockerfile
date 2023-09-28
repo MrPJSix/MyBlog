@@ -16,9 +16,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 FROM alpine:latest
 
 # 设置时区
-RUN apk --no-cache add tzdata && \
-    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
+ENV TZ=Asia/Shanghai
 
 # 从builder阶段复制执行文件到当前阶段
 COPY --from=builder /app/main /main
