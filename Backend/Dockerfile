@@ -12,12 +12,15 @@ COPY . .
 # 构建应用程序
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
-# 使用alpine作为基础映像
-FROM alpine:latest
+# 使用debian作为基础映像
+FROM debian:latest
 
 # 从builder阶段复制执行文件到当前阶段
 COPY --from=builder /app/main /main
 COPY ./config/config.ini /config/config.ini
+
+# 设置debian容器时间
+ENV TZ=Asia/Shanghai
 
 # 设置应用程序为Docker容器的默认执行命令
 CMD ["/main"]
