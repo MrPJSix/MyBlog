@@ -19,12 +19,12 @@ func InitUserRouter(group *gin.RouterGroup) {
 	group.GET("category/:id", cateController.GetCategoryInfo)
 	group.GET("categories", cateController.GetCategoryList)
 
-	group.GET("articles/user/:id", artController.GetListByUser)
-	group.GET("articles/category/:id", artController.GetListByCategory)
+	group.GET("user/:id/articles", artController.GetListByUser)
+	group.GET("category/:id/articles", artController.GetListByCategory)
 	group.GET("article/:id", artController.GetArticleInfo)
 	group.GET("articles", artController.GetArticleList)
 
-	group.GET("comment/article/:id", commentController.GetCommentsByArticleID)
+	group.GET("article/:id/comments", commentController.GetCommentsByArticleID)
 
 	group.Use(auth.JwtAuth())
 	{

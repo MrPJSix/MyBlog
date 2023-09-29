@@ -26,8 +26,8 @@ func InitAdminRouter(group *gin.RouterGroup) {
 
 		// 文章模块的路由接口
 		group.POST("article", artController.CreateArticle)
-		group.GET("articles/user/:id", artController.GetListByUser)
-		group.GET("articles/category/:id", artController.GetListByCategory)
+		group.GET("user/:id/articles", artController.GetListByUser)
+		group.GET("category/:id/articles", artController.GetListByCategory)
 		group.GET("article/:id", artController.GetArticleInfo)
 		group.GET("articles", artController.GetArticleList)
 		group.PUT("article/:id", artController.UpdateArticle)
@@ -42,7 +42,7 @@ func InitAdminRouter(group *gin.RouterGroup) {
 
 		// 评论模块的路由接口
 		group.POST("comment", commentController.CreateComment)
-		group.GET("comment/article/:id", commentController.GetCommentsByArticleID)
+		group.GET("article/:id/comments", commentController.GetCommentsByArticleID)
 		group.DELETE("comment/:id", commentController.DeleteComment)
 	}
 }
