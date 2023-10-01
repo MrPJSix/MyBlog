@@ -37,5 +37,4 @@ func InitUserRouter(group *gin.RouterGroup) {
 		group.POST("comment", commentController.CreateComment)
 		group.DELETE("comment/:id", commentController.DeleteComment)
 	}
-
 }
