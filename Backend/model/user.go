@@ -12,7 +12,7 @@ type User struct {
 	Password string `gorm:"type:varchar(100);not null" json:"password" validate:"required,min=8,max=25" lable:"密码"`
 	FullName string `gorm:"type:varchar(25);not null;unique" json:"full_name"`
 	Bio      string `gorm:"type:varchar(100)" json:"bio"`
-	Role     uint8  `gorm:"type:tinyint;default:2" json:"role" validate:"required, gte=2" lable:"角色码"`
+	Role     uint8  `gorm:"type:tinyint;default:2" json:"role" lable:"角色码"`
 }
 
 // 密码加密 & 权限控制

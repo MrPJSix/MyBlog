@@ -7,6 +7,7 @@ import (
 	"myblog.backend/model"
 	"myblog.backend/service"
 	"myblog.backend/utils/errmsg"
+	"myblog.backend/utils/valid"
 	"net/http"
 	"strconv"
 )
@@ -65,25 +66,28 @@ func (uc *UserController) Login(c *gin.Context) {
 func (uc *UserController) Register(c *gin.Context) {
 	var rq dto.RegisterRequest
 	var code int
+	var msg string
+	code = errmsg.SUCCESS
 	err := c.ShouldBindJSON(&rq)
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  code,
-			"data":    nil,
-			"message": errmsg.GetErrMsg(code),
-		})
-		return
-	}
-	if rq.Password != rq.ConfirmPassword {
+		msg = errmsg.GetErrMsg(code)
+	} else if ms, cd := valid.ValidateRegister(rq); cd != errmsg.SUCCESS {
+		code = cd
+		msg = ms
+	} else if rq.Password != rq.ConfirmPassword {
 		code = errmsg.ERROR_PASSWORDS_NOT_EQUAL
+		msg = errmsg.GetErrMsg(code)
+	}
+	if code != errmsg.SUCCESS {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  code,
 			"data":    nil,
-			"message": errmsg.GetErrMsg(code),
+			"message": msg,
 		})
 		return
 	}
+
 	user := dto.RegisterRequestToUser(&rq)
 	user.Role = 2
 	code = uc.userService.CreateUser(user)
