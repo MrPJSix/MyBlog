@@ -28,7 +28,7 @@
         <el-icon><location /></el-icon>
         <template #title>首页</template>
       </el-menu-item>
-      <el-menu-item index="/index2">
+      <el-menu-item index="/admin/index2">
         <el-icon><icon-menu /></el-icon>
         <template #title>Navigator Two</template>
       </el-menu-item>
@@ -77,11 +77,11 @@
 </script>
 
 <style scoped>
-  .sidebar {
-    //position: relative;
-    //width: 200px;  /* Or your desired width */
-    //min-height: 100%;
-  }
+  /* .sidebar {
+    position: relative;
+    width: 200px;  
+    min-height: 100%;
+  } */
   .menu-title{
     height: 15vh;
     display: flex;
