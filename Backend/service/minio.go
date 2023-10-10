@@ -12,12 +12,12 @@ type IMinIOService interface {
 }
 
 type MinIOService struct {
-	userRepo *repository.UserRepo
+	userRepo *repository.MinIORepo
 }
 
 func NewMinIOService() *MinIOService {
-	userRepo := repository.NewUserRepo()
-	return &MinIOService{userRepo}
+	MinIORepo := repository.NewMinIORepo()
+	return &MinIOService{MinIORepo}
 }
 
 /* ====================================== */

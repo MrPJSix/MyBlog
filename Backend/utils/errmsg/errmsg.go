@@ -33,6 +33,9 @@ const (
 	ERROR_BAD_USERNAME        = 5001
 	ERROR_BAD_PASSWORD        = 5002
 	ERROR_PASSWORDS_NOT_EQUAL = 5003
+
+	// code=6000... 上传文件模块错误
+	ERROR_UPLOAD_USERAVT = 6001
 )
 
 var codeMsg = map[int]string{
@@ -68,6 +71,9 @@ var codeMsg = map[int]string{
 	ERROR_PASSWORDS_NOT_EQUAL: "两次密码输入不一致",
 	ERROR_BAD_USERNAME:        "用户名只能是字母和数字，长度为8-25",
 	ERROR_BAD_PASSWORD:        "密码只能是字母、数字和特殊字符，长度为8-25",
+
+	// 上传文件模块错误
+	ERROR_UPLOAD_USERAVT: "头像上传失败",
 }
 
 func GetErrMsg(code int) string {
