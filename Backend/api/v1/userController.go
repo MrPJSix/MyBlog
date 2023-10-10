@@ -163,8 +163,8 @@ func (uc *UserController) UpLoadAvatar(c *gin.Context) {
 		url, code = uc.minioService.UpLoadUserAvatar(userID, &file)
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"status":  code,
-		"message": errmsg.GetErrMsg(code),
-		"url":     url,
+		"status":     code,
+		"message":    errmsg.GetErrMsg(code),
+		"avatar_url": url,
 	})
 }
