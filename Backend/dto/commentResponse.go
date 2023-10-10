@@ -10,8 +10,9 @@ type CommentResponse struct {
 }
 
 type User struct {
-	UserID   uint   `json:"user_id"`
-	FullName string `json:"full_name"`
+	UserID    uint    `json:"user_id"`
+	FullName  string  `json:"full_name"`
+	AvatarURL *string `json:"avatar_url"`
 }
 
 func CommentToResponse(comment *model.Comment) *CommentResponse {
@@ -20,8 +21,9 @@ func CommentToResponse(comment *model.Comment) *CommentResponse {
 		Content:   comment.Content,
 		ArticleID: comment.ArticleID,
 		User: User{
-			UserID:   comment.UserID,
-			FullName: comment.User.FullName,
+			UserID:    comment.UserID,
+			FullName:  comment.User.FullName,
+			AvatarURL: comment.User.AvatarURL,
 		},
 	}
 }

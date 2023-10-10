@@ -20,8 +20,9 @@ type ArticleResponse struct {
 }
 
 type Author struct {
-	UserID   uint   `json:"user_id"`
-	FullName string `json:"full_name"`
+	UserID    uint    `json:"user_id"`
+	FullName  string  `json:"full_name"`
+	AvatarURL *string `json:"avatar_url"`
 }
 
 type Category struct {
@@ -45,8 +46,9 @@ func ArticleToResponse(article *model.Article) *ArticleResponse {
 			CategoryName: article.Category.Name,
 		},
 		Author: Author{
-			UserID:   article.UserID,
-			FullName: article.User.FullName,
+			UserID:    article.UserID,
+			FullName:  article.User.FullName,
+			AvatarURL: article.User.AvatarURL,
 		},
 	}
 }
