@@ -18,6 +18,7 @@ var minioClient *minio.Client
 
 func InitDB() {
 	initMySQL()
+	initMinIO()
 }
 
 // 初始化MySQL数据库

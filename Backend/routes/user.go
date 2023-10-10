@@ -36,5 +36,7 @@ func InitUserRouter(group *gin.RouterGroup) {
 
 		group.POST("comment", commentController.CreateComment)
 		group.DELETE("comment/:id", commentController.DeleteComment)
+
+		group.POST("user/avatar", userController.UpLoadAvatar)
 	}
 }

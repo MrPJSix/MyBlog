@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"myblog.backend/dto"
 	"myblog.backend/middleware/auth"
 	"myblog.backend/model"
@@ -19,15 +20,18 @@ type IUserController interface {
 	Register(c *gin.Context)
 	GetUserInfo(c *gin.Context)
 	UpdateUserBasicInfo(c *gin.Context)
+	UpLoadAvatar(c *gin.Context)
 }
 
 type UserController struct {
-	userService *service.UserService
+	userService  *service.UserService
+	minioService *service.MinIOService
 }
 
 func NewUserController() *UserController {
 	userService := service.NewUserService()
-	return &UserController{userService}
+	minioService := service.NewMinIOService()
+	return &UserController{userService, minioService}
 }
 
 /* ====================================== */
@@ -144,5 +148,23 @@ func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
 		"status":  code,
 		"data":    responseData,
 		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+// 上传用户头像
+func (uc *UserController) UpLoadAvatar(c *gin.Context) {
+	file, _, err := c.Request.FormFile("avatar")
+	var code int
+	var url string
+	if err != nil {
+		log.Println("文件请求错误", err)
+	} else {
+		userID := c.MustGet("user_id").(uint)
+		url, code = uc.minioService.UpLoadUserAvatar(userID, &file)
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"message": errmsg.GetErrMsg(code),
+		"url":     url,
 	})
 }
