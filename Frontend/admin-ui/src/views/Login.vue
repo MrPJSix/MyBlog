@@ -1,5 +1,14 @@
 <template>
   <div class="login-page">
+    <div class="square">
+      <ul>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+    </div>
     <div class="login-container">
       <div class="login-box">
         <div class="owl" :class="{password: isPasswordFocused}" ref="owlRef">
@@ -11,11 +20,20 @@
           </div>
         </div>
         <div class="input-box">
-          <input type="text" placeholder="账号" v-model="username">
-          <input type="password" placeholder="密码" v-model="password" @focus="handleFocus" @blur="handleBlur">
+          <input type="text" placeholder="账号" v-model="username" @keyup.enter="login">
+          <input type="password" placeholder="密码" v-model="password" @focus="handleFocus" @blur="handleBlur" @keyup.enter="login">
           <button @click="login">登录</button>
         </div>
       </div>
+    </div>
+    <div class="circle">
+      <ul>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
     </div>
   </div>
 </template>

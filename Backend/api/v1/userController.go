@@ -72,9 +72,8 @@ func (uc *UserController) Register(c *gin.Context) {
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
 		msg = errmsg.GetErrMsg(code)
-	} else if ms, cd := valid.ValidateRegister(rq); cd != errmsg.SUCCESS {
-		code = cd
-		msg = ms
+	} else if code = valid.ValidateCredentials(rq.Username, rq.Password); code != errmsg.SUCCESS {
+		msg = errmsg.GetErrMsg(code)
 	} else if rq.Password != rq.ConfirmPassword {
 		code = errmsg.ERROR_PASSWORDS_NOT_EQUAL
 		msg = errmsg.GetErrMsg(code)

@@ -8,11 +8,12 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"type:varchar(25);not null;unique" json:"username" validate:"required,min=8,max=25" lable:"用户名"`
-	Password string `gorm:"type:varchar(100);not null" json:"password" validate:"required,min=8,max=25" lable:"密码"`
-	FullName string `gorm:"type:varchar(25);not null;unique" json:"full_name"`
-	Bio      string `gorm:"type:varchar(100)" json:"bio"`
-	Role     uint8  `gorm:"type:tinyint;default:2" json:"role" lable:"角色码"`
+	Username  string  `gorm:"type:varchar(25);not null;unique" json:"username" validate:"required,email,min=8,max=25" label:"用户名"`
+	Password  string  `gorm:"type:varchar(100);not null" json:"password" validate:"required,alphanum,min=8,max=25" label:"密码"`
+	FullName  string  `gorm:"type:varchar(25);not null;unique" json:"full_name"`
+	Bio       string  `gorm:"type:varchar(100)" json:"bio"`
+	Role      uint8   `gorm:"type:tinyint;default:2" json:"role" label:"角色码"`
+	AvatarURL *string `json:"avatar_url"`
 }
 
 // 密码加密 & 权限控制

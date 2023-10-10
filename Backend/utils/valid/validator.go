@@ -3,16 +3,34 @@ package valid
 import (
 	"fmt"
 	"github.com/go-playground/locales/zh_Hans_CN"
-	ut "github.com/go-playground/universal-translator"
+	unTrans "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	zhTrans "github.com/go-playground/validator/v10/translations/zh"
 	"myblog.backend/utils/errmsg"
 	"reflect"
+	"regexp"
 )
+
+var (
+	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9]{8,25}$`)
+	passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]{8,25}$`)
+)
+
+func ValidateCredentials(username, password string) int {
+	isUsernameValid := usernameRegex.MatchString(username)
+	if !isUsernameValid {
+		return errmsg.ERROR_BAD_USERNAME
+	}
+	isPasswordValid := passwordRegex.MatchString(password)
+	if !isPasswordValid {
+		return errmsg.ERROR_BAD_PASSWORD
+	}
+	return errmsg.SUCCESS
+}
 
 func ValidateRegister(data interface{}) (string, int) {
 	validate := validator.New()
-	uni := ut.New(zh_Hans_CN.New())
+	uni := unTrans.New(zh_Hans_CN.New())
 	trans, _ := uni.GetTranslator("zh_Hans_CN")
 
 	err := zhTrans.RegisterDefaultTranslations(validate, trans)

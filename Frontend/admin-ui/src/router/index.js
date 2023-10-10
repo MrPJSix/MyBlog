@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+const Login = () =>  import('../views/Login.vue');
+const Admin = () => import('../views/Admin.vue');
+
 const routes = [
     {
         path:'/index',
@@ -9,7 +12,20 @@ const routes = [
     {
         path:'/login',
         name:'Login',
-        component: () => import('../views/Login.vue')
+        component: Login
+    },
+    {
+        path:'/admin',
+        name:'Admin',
+        component: Admin,
+        children: [
+            {path:'/index2', name:'Index2', component: () => import('../views/Index2.vue')},
+            {
+                path:'/login',
+                name:'Login',
+                component: Login
+            }
+        ]
     }
 ]
 

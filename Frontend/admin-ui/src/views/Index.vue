@@ -31,4 +31,8 @@ const showMessage = () => {
   justify-content: center;
   min-height: 100vh;
 }
+{
+  background-color: #f0fff0
+;
+}
 </style>

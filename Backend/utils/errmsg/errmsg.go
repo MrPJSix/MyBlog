@@ -17,7 +17,6 @@ const (
 	ERROR_USER_NO_RIGHT       = 1008
 	ERROR_USER_FULLNAME_EXIST = 1009
 	ERROR_USER_NOT_ADMIN      = 1010
-	ERROR_PASSWORDS_NOT_EQUAL = 1011
 
 	// code=2000... 文章模块错误
 	ERROR_ARTICLE_NOT_EXIST   = 2001
@@ -29,6 +28,11 @@ const (
 
 	// code=4000... 评论模块错误
 	ERROR_COMMENT_NOT_EXIST = 4001
+
+	// code=5000... 注册模块错误
+	ERROR_BAD_USERNAME        = 5001
+	ERROR_BAD_PASSWORD        = 5002
+	ERROR_PASSWORDS_NOT_EQUAL = 5003
 )
 
 var codeMsg = map[int]string{
@@ -48,7 +52,6 @@ var codeMsg = map[int]string{
 	ERROR_USER_NO_RIGHT:       "该用户无权限",
 	ERROR_USER_FULLNAME_EXIST: "用户昵称已存在",
 	ERROR_USER_NOT_ADMIN:      "非管理员用户无权操作",
-	ERROR_PASSWORDS_NOT_EQUAL: "两次密码输入不一致",
 
 	// 文章模块错误
 	ERROR_ARTICLE_NOT_EXIST:   "文章不存在",
@@ -60,6 +63,11 @@ var codeMsg = map[int]string{
 
 	// 评论模块错误
 	ERROR_COMMENT_NOT_EXIST: "该评论不存在",
+
+	// 注册模块错误
+	ERROR_PASSWORDS_NOT_EQUAL: "两次密码输入不一致",
+	ERROR_BAD_USERNAME:        "用户名只能是字母和数字，长度为8-25",
+	ERROR_BAD_PASSWORD:        "密码只能是字母、数字和特殊字符，长度为8-25",
 }
 
 func GetErrMsg(code int) string {

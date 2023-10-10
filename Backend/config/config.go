@@ -17,6 +17,11 @@ var (
 	DbUser     string
 	DbPassword string
 	DbName     string
+
+	// MinIO配置
+	EndPoint  string
+	AccessKey string
+	SecretKey string
 )
 
 func init() {
@@ -26,6 +31,7 @@ func init() {
 	}
 	InitServerConfig(file)
 	InitDatabaseConfig(file)
+	InitMinIOConfig(file)
 }
 
 func InitServerConfig(file *ini.File) {
@@ -41,4 +47,10 @@ func InitDatabaseConfig(file *ini.File) {
 	DbUser = file.Section(database).Key("DbUser").String()
 	DbPassword = file.Section(database).Key("DbPassword").String()
 	DbName = file.Section(database).Key("DbName").String()
+}
+
+func InitMinIOConfig(file *ini.File) {
+	EndPoint = file.Section("minio").Key("EndPoint").String()
+	AccessKey = file.Section("minio").Key("AccessKey").String()
+	SecretKey = file.Section("minio").Key("SecretKey").String()
 }
