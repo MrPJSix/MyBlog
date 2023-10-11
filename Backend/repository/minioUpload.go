@@ -13,6 +13,7 @@ import (
 
 type IMinIORepo interface {
 	UpLoadImg(userID uint, objectName string, file *bytes.Buffer, contentType string) int
+	DeleteImg(objectName string)
 }
 
 type MinIORepo struct{}
@@ -53,4 +54,19 @@ func (mr *MinIORepo) UpLoadImg(userID uint, objectName string, file *bytes.Buffe
 	}
 
 	return info.Location, errmsg.SUCCESS
+}
+
+func (mr *MinIORepo) DeleteImg(objectName string) {
+
+	opts := minio.RemoveObjectOptions{
+		GovernanceBypass: true,
+	}
+
+	err := minioClient.RemoveObject(context.Background(), bucketName, objectName, opts)
+	if err != nil {
+		log.Fatalln("移除旧用户头像失败！", err)
+
+	}
+
+	log.Println("移除旧用户头像成功！")
 }

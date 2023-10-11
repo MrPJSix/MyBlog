@@ -68,7 +68,6 @@ func (cc *CommentController) GetCommentsByArticleID(c *gin.Context) {
 		"total":   total,
 		"message": errmsg.GetErrMsg(code),
 	})
-
 }
 
 // 删除评论

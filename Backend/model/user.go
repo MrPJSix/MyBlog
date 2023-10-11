@@ -13,7 +13,7 @@ type User struct {
 	FullName  string  `gorm:"type:varchar(25);not null;unique" json:"full_name"`
 	Bio       string  `gorm:"type:varchar(100)" json:"bio"`
 	Role      uint8   `gorm:"type:tinyint;default:2" json:"role" label:"角色码"`
-	AvatarURL *string `json:"avatar_url"`
+	AvatarURL *string `gorm:"type:varchar(100)" json:"avatar_url"`
 }
 
 // 密码加密 & 权限控制

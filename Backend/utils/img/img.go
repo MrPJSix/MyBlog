@@ -51,10 +51,10 @@ func ProcessAvatar(userID uint, file *multipart.File) (*bytes.Buffer, string, st
 		log.Println(err)
 		return nil, "", "", err
 	}
-	currentTime := time.Now().UnixNano() // 获取当前的Unix纳秒时间戳
-	AvatarID := fmt.Sprintf("%d_%d", userID, currentTime)
+	currentTime := time.Now().Unix() // 获取当前的Unix秒时间戳
+	avatarID := fmt.Sprintf("user_%d_%d", userID, currentTime)
 	// 生成新的文件名
-	filename := AvatarID + ".png"
+	filename := avatarID + ".png"
 	contentType = "image/png"
 	return &b, filename, contentType, nil
 }
