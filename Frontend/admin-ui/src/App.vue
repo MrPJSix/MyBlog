@@ -1,10 +1,9 @@
 <script setup>
-  import Main from './views/Home/Index.vue'
 </script>
 
 <template>
   <div id="app">
-    <Main></Main>
+    <RouterView></RouterView>
   </div>
 </template>
 
