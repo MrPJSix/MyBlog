@@ -14,6 +14,8 @@ type ICommentRepo interface {
 	Create(comment *model.Comment) int
 	GetByArticleID(articleID uint) ([]model.Comment, int64, int)
 	Delete(id uint) int
+	GetRootByArticleID(articleID uint) ([]model.Comment, int)
+	GetRepliesByArticleID(articleID uint) ([]model.Comment, int)
 }
 
 type CommentRepo struct {
@@ -29,7 +31,8 @@ func (cr *CommentRepo) createAndPreload(comment *model.Comment) error {
 	if err := db.Create(comment).Error; err != nil {
 		return err
 	}
-	return db.Preload("Article").Preload("User").Where("id = ?", comment.ID).First(comment).Error
+	db.Preload("User").Preload("RepliedUser").Where("id = ?", comment.ID).First(comment)
+	return nil
 }
 
 // 检查评论是否存在
@@ -58,13 +61,38 @@ func (commentRepo *CommentRepo) Create(comment *model.Comment) int {
 func (commentRepo *CommentRepo) GetByArticleID(articleID uint) ([]model.Comment, int64, int) {
 	var comments []model.Comment
 	var total int64
-	err := db.Preload("Article").Preload("User").
+	err := db.Preload("User").Preload("RepliedUser").
 		Where("article_id = ?", articleID).
 		Find(&comments).Count(&total).Error
 	if err != nil {
 		return nil, 0, errmsg.ERROR
 	}
 	return comments, total, errmsg.SUCCESS
+}
+
+// 获取谋篇文章的所有根评论
+func (commentRepo *CommentRepo) GetRootByArticleID(articleID uint) ([]model.Comment, int) {
+	var comments []model.Comment
+	err := db.Preload("User").
+		Where("article_id = ? AND parent_comment_id IS NULL", articleID).
+		Order("likes DESC").
+		Find(&comments).Error
+	if err != nil {
+		return nil, errmsg.ERROR
+	}
+	return comments, errmsg.SUCCESS
+}
+
+// 获取谋篇文章的所有对根评论的回复
+func (commentRepo *CommentRepo) GetRepliesByArticleID(articleID uint) ([]model.Comment, int) {
+	var replies []model.Comment
+	err := db.Preload("User").Preload("RepliedUser").
+		Where("article_id = ? AND parent_comment_id IS NOT NULL", articleID).
+		Find(&replies).Error
+	if err != nil {
+		return nil, errmsg.ERROR
+	}
+	return replies, errmsg.SUCCESS
 }
 
 // 删除评论

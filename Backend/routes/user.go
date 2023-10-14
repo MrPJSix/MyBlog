@@ -24,7 +24,7 @@ func InitUserRouter(group *gin.RouterGroup) {
 	group.GET("article/:id", artController.GetArticleInfo)
 	group.GET("articles", artController.GetArticleList)
 
-	group.GET("article/:id/comments", commentController.GetCommentsByArticleID)
+	group.GET("article/:id/comments", commentController.GetRootCommentsByArticleID)
 
 	group.Use(auth.JwtAuth())
 	{
@@ -34,7 +34,8 @@ func InitUserRouter(group *gin.RouterGroup) {
 		group.PUT("article/:id", artController.UpdateArticle)
 		group.DELETE("article/:id", artController.DeleteArticle)
 
-		group.POST("comment", commentController.CreateComment)
+		group.POST("article/:id/comment", commentController.CreateCommentToArticle)
+		group.POST("article/:id/comment/:cid/reply", commentController.CreateReply)
 		group.DELETE("comment/:id", commentController.DeleteComment)
 
 		group.POST("user/avatar", userController.UpLoadAvatar)

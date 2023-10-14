@@ -1,26 +1,27 @@
 <script setup>
 import Sidebar from '../components/Sidebar.vue';
+import PageHeader from "../components/PageHeader.vue";
 </script>
 
 <template>
-  <div class="admin">
-    <div class="sidebar-page">
-      <Sidebar></Sidebar>
-    </div>
-    <div class="main-content">
-      <router-view/>
-    </div>
-  </div>
+  <el-container class="admin">
+      <el-aside width="200px">
+        <Sidebar></Sidebar>
+      </el-aside>
+    <el-container>
+      <el-header height="10vh">
+        <PageHeader></PageHeader>
+      </el-header>
+      <el-main>
+        <router-view/>
+      </el-main>
+    </el-container>
+
+  </el-container>
 </template>
 
 <style scoped>
 .admin {
   display: flex;
-}
-/*.sidebar-page {
-  width: 15%;
-}*/
-.main-content {
-  min-width: 85%;
 }
 </style>

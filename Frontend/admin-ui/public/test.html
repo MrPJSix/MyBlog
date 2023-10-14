@@ -4,32 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Message Test</title>
-    <!-- 引入 Vue.js -->
     <script src="https://unpkg.com/vue@3"></script>
-    <!-- 引入 Element Plus CSS -->
-    <link href="https://unpkg.com/element-plus/lib/theme-chalk/index.css" rel="stylesheet">
-    <!-- 引入 Element Plus JavaScript -->
-    <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
+
 </head>
 <body>
-<div id="app">
-    <h1>Message Test Page</h1>
-    <button @click="showMessage">Show Message</button>
+<div class="header">
+    <div class="header-content">
+        <div class="title">{{ title }}</div>
+        <img class="avatar" :src="avatarUrl" alt="Avatar">
+        <button class="settings-button">设置</button>
+    </div>
 </div>
-
 <script>
-    const app = Vue.createApp({
-        methods: {
-            showMessage() {
-                this.$message({
-                    message: 'This is a message',
-                    type: 'success',
-                });
-            }
-        }
-    });
-    app.use(ElementPlus);
-    app.mount('#app');
+    export default {
+        props: {
+            title: String, // 传入标题
+            avatarUrl: String, // 传入头像图片的URL
+        },
+    };
 </script>
+
+<style scoped>
+    .header {
+        background-color: #333;
+        color: #fff;
+        padding: 10px;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .title {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .settings-button {
+        background-color: #555;
+        color: #fff;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
 </body>
 </html>
