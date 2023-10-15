@@ -3,11 +3,13 @@ import { createRouter, createWebHistory } from "vue-router";
 const Login = () => import('../views/Login.vue');
 const Admin = () => import('../views/Admin.vue');
 
+const Index = () => import('../components/admin/Index.vue');
+const UserManagement = () => import('../components/admin/UserManagement.vue')
+
 const routes = [
     {
-        path: '/index',
-        name: 'Index',
-        component: () => import('../views/Index.vue')
+        path: '/',
+        redirect: '/login'
     },
     {
         path: '/login',
@@ -19,7 +21,8 @@ const routes = [
         name: 'Admin',
         component: Admin,
         children: [
-            { path: 'index2', name: 'Index2', component: () => import('../views/Index2.vue') },
+            { path: 'index', name: 'Index', component: Index },
+            { path: 'user', name: 'User', component: UserManagement },
         ]
     }
 ]

@@ -1,6 +1,6 @@
 <script setup>
-import Sidebar from '../components/Sidebar.vue';
-import PageHeader from "../components/PageHeader.vue";
+import Sidebar from '../components/admin/Sidebar.vue';
+import PageHeader from "../components/admin/PageHeader.vue";
 </script>
 
 <template>
@@ -16,7 +16,6 @@ import PageHeader from "../components/PageHeader.vue";
         <router-view/>
       </el-main>
     </el-container>
-
   </el-container>
 </template>
 

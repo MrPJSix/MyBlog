@@ -16,6 +16,7 @@ type ICommentService interface {
 	DeleteComment(requester *model.User, id uint) int
 	buildCommentReplies(uint, map[uint][]model.Comment) []model.Comment
 	GetRootCommentsByArticleID(articleID uint) ([]model.Comment, int)
+	GetAllCommentsCount() (int64, int)
 }
 
 type CommentService struct {
@@ -92,4 +93,8 @@ func (cs *CommentService) GetRootCommentsByArticleID(articleID uint) ([]model.Co
 	}
 
 	return rootComments, errmsg.SUCCESS
+}
+
+func (cs *CommentService) GetAllArticlesCount() (int64, int) {
+	return cs.commentRepo.GetAllCount()
 }

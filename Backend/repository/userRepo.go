@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"myblog.backend/model"
 	"myblog.backend/utils/errmsg"
 	"myblog.backend/utils/securepw"
@@ -19,6 +20,7 @@ type IUserRepo interface {
 	UpdateBasicInfo(id uint, user *model.User) int
 	Delete(id uint) int
 	CheckPassword(user *model.User) int
+	GetAllCount() (int64, int)
 	// Todo UpdatePassword(username, password string) int
 	// Todo ResetPassword(username string) int
 	// Todo UpdateRole(username string) int
@@ -149,4 +151,15 @@ func (ur *UserRepo) CheckPassword(user *model.User) int {
 		return errmsg.ERROR_PASSWORD_WRONG
 	}
 	return errmsg.SUCCESS
+}
+
+// 获取所有用户量
+func (ur *UserRepo) GetAllCount() (int64, int) {
+	var total int64
+	err := db.Model(&model.User{}).Select("id").Where("role <> ?", 1).Count(&total).Error
+	if err != nil {
+		log.Println("查询用户总数失败！", err)
+		return 0, errmsg.ERROR
+	}
+	return total, errmsg.SUCCESS
 }

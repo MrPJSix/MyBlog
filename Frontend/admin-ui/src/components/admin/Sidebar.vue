@@ -14,7 +14,7 @@
     </el-menu-item>
   </el-menu>
   <el-menu
-      default-active="/admin"
+      default-active="/admin/index"
       background-color="#545c64"
       text-color="#ffffff"
       @open="handleOpen"
@@ -22,11 +22,11 @@
       class="menu"
       router="true"
   >
-    <el-menu-item index="/admin">
+    <el-menu-item index="/admin/index">
       <el-icon><Promotion /></el-icon>
       <template #title>首页</template>
     </el-menu-item>
-    <el-menu-item index="/admin/index2">
+    <el-menu-item index="/admin/user">
       <el-icon><User /></el-icon>
       <template #title>用户管理</template>
     </el-menu-item>
@@ -39,7 +39,7 @@
       <template #title>文章管理</template>
     </el-menu-item>
     <el-menu-item index="5">
-      <el-icon><ChatDotRound /></el-icon>
+      <el-icon><ChatLineRound /></el-icon>
       <template #title>评论管理</template>
     </el-menu-item>
   </el-menu>
@@ -51,7 +51,7 @@
     User,
     Memo,
     Reading,
-    ChatDotRound,
+    ChatLineRound,
     ElementPlus,
   } from '@element-plus/icons-vue'
 

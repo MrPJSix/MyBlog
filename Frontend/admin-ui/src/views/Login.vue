@@ -42,6 +42,7 @@
   import axios from 'axios';
   import { ref } from 'vue';
   import { ElMessage } from "element-plus";
+  import router from "../router/index.js"
 
   const username = ref('');
   const password = ref('');
@@ -65,6 +66,7 @@
           type: 'success',
         })
         localStorage.setItem('token', response.data.token);
+        router.push("/admin/index")
       } else {
         ElMessage({
           message: response.data.message,

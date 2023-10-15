@@ -17,6 +17,7 @@ type ICommentController interface {
 	GetCommentsByArticleID(c *gin.Context)
 	DeleteComment(c *gin.Context)
 	GetRootCommentsByArticleID(c *gin.Context)
+	GetAllCommentsCount(c *gin.Context)
 }
 
 type CommentController struct {
@@ -130,6 +131,15 @@ func (cc *CommentController) DeleteComment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (cc *CommentController) GetAllCommentsCount(c *gin.Context) {
+	total, code := cc.commentService.GetAllArticlesCount()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

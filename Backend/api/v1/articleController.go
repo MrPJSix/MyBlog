@@ -20,6 +20,7 @@ type IArticleController interface {
 	GetListByUser(c *gin.Context)
 	UpdateArticle(c *gin.Context)
 	DeleteArticle(c *gin.Context)
+	GetAllArticlesCount(c *gin.Context)
 }
 
 type ArticleController struct {
@@ -169,6 +170,15 @@ func (ac *ArticleController) DeleteArticle(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) GetAllArticlesCount(c *gin.Context) {
+	total, code := ac.articleService.GetAllArticlesCount()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

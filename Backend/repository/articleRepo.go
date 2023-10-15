@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"myblog.backend/model"
 	"myblog.backend/utils/errmsg"
 )
@@ -21,6 +22,7 @@ type IArticleRepo interface {
 	Update(id uint, article *model.Article) int
 	Delete(id uint) int
 	IncreaseReadCount(id uint)
+	GetAllCount() (int64, int)
 }
 
 type ArticleRepo struct{}
@@ -174,4 +176,15 @@ func (ar *ArticleRepo) Delete(id uint) int {
 // 增加浏览量
 func (ar *ArticleRepo) IncreaseReadCount(id uint) {
 	db.Model(&model.Article{}).Where("id = ?", id).UpdateColumn("read_count", gorm.Expr("read_count + ?", 1))
+}
+
+// 获取所有文章总量
+func (ar *ArticleRepo) GetAllCount() (int64, int) {
+	var total int64
+	err := db.Model(&model.Article{}).Select("id").Count(&total).Error
+	if err != nil {
+		log.Println("查询文章总数失败！", err)
+		return 0, errmsg.ERROR
+	}
+	return total, errmsg.SUCCESS
 }

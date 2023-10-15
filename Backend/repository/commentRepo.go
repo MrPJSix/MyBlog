@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"myblog.backend/model"
 	"myblog.backend/utils/errmsg"
 )
@@ -16,6 +17,7 @@ type ICommentRepo interface {
 	Delete(id uint) int
 	GetRootByArticleID(articleID uint) ([]model.Comment, int)
 	GetRepliesByArticleID(articleID uint) ([]model.Comment, int)
+	GetAllCount() (int64, int)
 }
 
 type CommentRepo struct {
@@ -106,4 +108,14 @@ func (commentRepo *CommentRepo) Delete(id uint) int {
 		return errmsg.ERROR
 	}
 	return errmsg.SUCCESS
+}
+
+func (commentRepo *CommentRepo) GetAllCount() (int64, int) {
+	var total int64
+	err := db.Model(&model.Comment{}).Select("id").Count(&total).Error
+	if err != nil {
+		log.Println("查询评论总数失败！", err)
+		return 0, errmsg.ERROR
+	}
+	return total, errmsg.SUCCESS
 }

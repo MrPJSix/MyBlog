@@ -16,6 +16,7 @@ type IUserService interface {
 	UpdateUserBasicInfo(requester *model.User, id uint, user *model.User) int
 	DeleteUser(id uint) int
 	CheckPassword(user *model.User) int
+	GetAllUsersCount() (int64, int)
 	// Todo UpdatePassword(username, password string) int
 	// Todo ResetPassword(username string) int
 	// Todo UpdateRole(username string) int
@@ -81,4 +82,8 @@ func (us *UserService) DeleteUser(id uint) int {
 
 func (us *UserService) CheckPassword(user *model.User) int {
 	return us.userRepo.CheckPassword(user)
+}
+
+func (us *UserService) GetAllUsersCount() (int64, int) {
+	return us.userRepo.GetAllCount()
 }

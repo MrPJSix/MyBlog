@@ -18,6 +18,7 @@ type IArticleService interface {
 	GetListByUser(userID uint, pageSize, pageNum int) ([]model.Article, int64, int)
 	UpdateArticle(requester *model.User, id uint, article *model.Article) int
 	DeleteArticle(requester *model.User, id uint) int
+	GetAllArticlesCount() (int64, int)
 }
 
 type ArticleService struct {
@@ -130,4 +131,8 @@ func (as *ArticleService) DeleteArticle(requester *model.User, id uint) int {
 		return errmsg.ERROR_USER_NO_RIGHT
 	}
 	return as.articleRepo.Delete(id)
+}
+
+func (as *ArticleService) GetAllArticlesCount() (int64, int) {
+	return as.articleRepo.GetAllCount()
 }
