@@ -3,9 +3,9 @@
     <el-col :span="2"></el-col>
     <el-col :span="20">
       <div class="time-content">
-        <span>当前时间：</span>
-        <span style="margin-right: 5px">{{ currentTime.year }}-{{ currentTime.month}}-{{ currentTime.day }}</span>
-        <span>{{currentTime.hours}}:{{currentTime.minutes}}:{{currentTime.seconds}}</span>
+        <span class="time-title">当前时间：</span>
+        <span style="margin-right: 10px" class="time-numfont">{{ currentTime.year }}-{{ currentTime.month}}-{{ currentTime.day }}</span>
+        <span class="time-numfont">{{currentTime.hours}}:{{currentTime.minutes}}:{{currentTime.seconds}}</span>
       </div>
     </el-col>
   </el-row>
@@ -14,7 +14,7 @@
       <div class="statistic-card">
         <div class="statistic-title">总用户量</div>
         <div class="statistics">
-          <span class="user-stats">10,000</span>
+          <span class="user-stats">{{ usersCount }}</span>
           <el-icon size="20px"><User /></el-icon>
         </div>
       </div>
@@ -23,7 +23,7 @@
       <div class="statistic-card">
         <div class="statistic-title">总文章数</div>
         <div class="statistics">
-          <span class="article-stats">10,000</span>
+          <span class="article-stats">{{ articlesCount }}</span>
           <el-icon size="20px"><Reading /></el-icon>
         </div>
       </div>
@@ -32,7 +32,7 @@
       <div class="statistic-card">
         <div class="statistic-title">总评论数</div>
         <div class="statistics">
-          <span class="comment-stats">10,000</span>
+          <span class="comment-stats">{{ commentsCount }}</span>
           <el-icon size="20px"><ChatLineRound /></el-icon>
         </div>
       </div>
@@ -47,9 +47,10 @@
     ChatLineRound,
   } from "@element-plus/icons-vue";
   import { ref, onMounted, onUnmounted } from 'vue';
+  import { getCurrentTime } from "../../utils/current-time.js";
+  import axios from "axios";
 
   /* --------- 时间显示 Start --------- */
-  import {getCurrentTime} from "../../utils/current-time.js";
   const currentTime = ref(getCurrentTime());
   // 在组件挂载时开始计时器
   onMounted(() => {
@@ -70,54 +71,63 @@
     clearInterval(timer);
   }
   /* --------- 时间显示 End --------- */
+
+  // 在请求拦截器中设置 Authorization 头部
+  axios.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  const usersCount = ref(0);
+  const articlesCount = ref(0);
+  const commentsCount = ref(0);
+
+  onMounted(async () => {
+    fetchData();
+  });
+
+  async function fetchData() {
+    try {
+      usersCount.value = await getUsersCount();
+      articlesCount.value = await getArticlesCount();
+      commentsCount.value = await getCommentsCount();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function getUsersCount() {
+    try {
+      const response = await axios.get('http://124.220.25.230:9000/admin/users/count');
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function getArticlesCount() {
+    try {
+      const response = await axios.get('http://124.220.25.230:9000/admin/articles/count');
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async function getCommentsCount() {
+    try {
+      const response = await axios.get('http://124.220.25.230:9000/admin/comments/count');
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 </script>
 
 <style scoped>
-.time-content {
-  margin: 10px;
-  min-height: 36px;
-}
-.statistic-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  border: 1px solid lightgray;
-  padding: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
-  border-radius: 10px;
-}
-.statistic-title{
-  font-size: 22px;
-  font-weight: bold;
-  color: #555555;
-}
-.statistics {
-  margin-top: 10px;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  text-align: center;
-}
-.statistics span {
-  margin-right: 10px;
-}
-.user-stats {
-  font-family: "Times New Roman";
-  font-size: 20px;
-  color: lightcoral;
-}
-.article-stats {
-  font-family: "Times New Roman";
-  font-size: 20px;
-  color: dodgerblue;
-}
-.comment-stats {
-  font-family: "Times New Roman";
-  font-size: 20px;
-  color: green;
-}
+@import "../../assets/css/index.css";
 </style>

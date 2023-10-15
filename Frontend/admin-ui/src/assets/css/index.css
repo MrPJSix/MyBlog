@@ -1,0 +1,62 @@
+.time-content {
+    margin: 10px;
+    min-height: 36px;
+}
+.time-title {
+    font-family: 华文琥珀;
+    font-size: 25px;
+    color: coral;
+    font-weight: normal;
+}
+
+.time-numfont {
+    font-family: "Footlight MT Light";
+    font-size: 22px;
+    font-weight: bold;
+    color: #555555;
+}
+
+.statistic-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid lightgray;
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+.statistic-title{
+    font-size: 22px;
+    font-weight: bold;
+    color: #555555;
+}
+.statistics {
+    margin-top: 10px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+}
+.statistics span {
+    margin-right: 10px;
+}
+.user-stats {
+    font-family: "Times New Roman";
+    font-size: 20px;
+    color: lightcoral;
+}
+.article-stats {
+    font-family: "Times New Roman";
+    font-size: 20px;
+    color: dodgerblue;
+}
+.comment-stats {
+    font-family: "Times New Roman";
+    font-size: 20px;
+    color: green;
+}
