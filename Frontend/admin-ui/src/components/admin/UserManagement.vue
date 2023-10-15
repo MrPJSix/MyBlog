@@ -7,7 +7,11 @@
     <el-table-column label="昵称" prop="full_name" />
     <el-table-column label="简介" prop="bio" />
     <el-table-column label="角色码" prop="role" />
-    <el-table-column label="头像" prop="avatar_url" />
+    <el-table-column label="头像" prop="avatar_url">
+      <template #default="scope">
+        <el-avatar :size="36" :src="scope.row.avatar_url" />
+      </template>
+    </el-table-column>
     <el-table-column align="center" label="操作">
       <template #default="scope">
         <el-button size="small" @click="handleEdit(scope.$index, scope.row)">Edit</el-button>
@@ -17,11 +21,11 @@
   </el-table>
   <div class="pagination">
     <el-pagination
-        v-model:current-page="currentPage4"
-        v-model:page-size="pageSize4"
-        :page-sizes="[5, 10, 20, 40]"
+        v-model:current-page="pageNum"
+        v-model:page-size="pageSize"
+        :page-sizes="[1, 2, 5, 10, 20, 40]"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="400"
+        :total="usersCount"
         background
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -30,68 +34,67 @@
 </template>
 
 <script lang="ts" setup>
-import { Timer } from '@element-plus/icons-vue'
-import { ref } from "vue";
+  import { ref, onMounted, nextTick } from "vue";
+  import axios from "axios";
 
-interface User {
-  id: number;
-  username: string;
-  full_name: string;
-  bio: string;
-  role: number;
-  avatar_url?: string | null;
-}
-
-const handleEdit = (index: number, row: User) => {
-  console.log(index, row)
-}
-const handleDelete = (index: number, row: User) => {
-  console.log(index, row)
-}
-
-const currentPage4 = ref(4)
-const pageSize4 = ref(100)
-const handleSizeChange = (val: number) => {
-  console.log(`${val} items per page`)
-}
-const handleCurrentChange = (val: number) => {
-  console.log(`current page: ${val}`)
-}
-
-const tableData: User[] = [
-  {
-    id: 1,
-    username: 'user1',
-    full_name: 'User One',
-    bio: 'Bio for User One',
-    role: 1,
-    avatar_url: 'https://example.com/avatar1.jpg'
-  },
-  {
-    id: 2,
-    username: 'user2',
-    full_name: 'User Two',
-    bio: 'Bio for User Two',
-    role: 2,
-    avatar_url: 'https://example.com/avatar2.jpg'
-  },
-  {
-    id: 3,
-    username: 'user3',
-    full_name: 'User Three',
-    bio: 'Bio for User Three',
-    role: 1,
-    avatar_url: null
-  },
-  {
-    id: 4,
-    username: 'user4',
-    full_name: 'User Four',
-    bio: 'Bio for User Four',
-    role: 3,
-    avatar_url: 'https://example.com/avatar4.jpg'
+  interface User {
+    id: number;
+    username: string;
+    full_name: string;
+    bio: string;
+    role: number;
+    avatar_url?: string | null;
   }
-];
+
+  const handleEdit = (index: number, row: User) => {
+    console.log(index, row)
+  }
+  const handleDelete = (index: number, row: User) => {
+    console.log(index, row)
+  }
+
+  const usersCount = ref(4);
+  const pageNum = ref(1);
+  const pageSize = ref(5);
+  const handleSizeChange = (val: number) => {
+    console.log(`${val} items per page`);
+    pageSize.value = val; // 在更改时更新页面大
+    nextTick(() => {
+      fetchData();
+    });
+  }
+  const handleCurrentChange = (val: number) => {
+    console.log(`current page: ${val}`);
+    pageNum.value = val; // 在更改时更新当前页面
+    nextTick(() => {
+      fetchData();
+    });
+  }
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`http://124.220.25.230:9000/admin/users`, {
+        params: {
+          pagesize: pageSize.value,
+          pagenum: pageNum.value,
+        },
+      });
+      if (response.data.status === 200) {
+        tableData.value = response.data.data;
+      }
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
+  }
+
+  onMounted(() => {
+    fetchData(); // 初始加载数据
+  });
+
+  onMounted(async () => {
+    try response = await 
+  })
+  const tableData = ref<User[]>([]);
 
 </script>
 

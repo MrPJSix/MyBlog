@@ -20,6 +20,7 @@ type IUserRepo interface {
 	UpdateBasicInfo(id uint, user *model.User) int
 	Delete(id uint) int
 	CheckPassword(user *model.User) int
+	GetUsersCount() (int64, int)
 	GetAllCount() (int64, int)
 	// Todo UpdatePassword(username, password string) int
 	// Todo ResetPassword(username string) int
@@ -154,11 +155,22 @@ func (ur *UserRepo) CheckPassword(user *model.User) int {
 }
 
 // 获取所有用户量
-func (ur *UserRepo) GetAllCount() (int64, int) {
+func (ur *UserRepo) GetUsersCount() (int64, int) {
 	var total int64
 	err := db.Model(&model.User{}).Select("id").Where("role <> ?", 1).Count(&total).Error
 	if err != nil {
 		log.Println("查询用户总数失败！", err)
+		return 0, errmsg.ERROR
+	}
+	return total, errmsg.SUCCESS
+}
+
+// 获取用户和管理员总量
+func (ur *UserRepo) GetAllCount() (int64, int) {
+	var total int64
+	err := db.Model(&model.User{}).Select("id").Count(&total).Error
+	if err != nil {
+		log.Println("查询用户和管理员总数失败！", err)
 		return 0, errmsg.ERROR
 	}
 	return total, errmsg.SUCCESS

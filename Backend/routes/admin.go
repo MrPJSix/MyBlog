@@ -40,7 +40,8 @@ func InitAdminRouter(group *gin.RouterGroup) {
 		group.GET("users", adminController.GetUserList)
 		group.PUT("user/:id", adminController.UpdateUserBasicInfo)
 		group.DELETE("user/:id", adminController.DeleteUser)
-		group.GET("users/count", adminController.GetAllUsersCount)
+		group.GET("users/count", adminController.GetUsersCount)
+		group.GET("users/all", adminController.GetAllCount)
 
 		// 评论模块的路由接口
 		group.POST("article/:id/comment", commentController.CreateCommentToArticle)

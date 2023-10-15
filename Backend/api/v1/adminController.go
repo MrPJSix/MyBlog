@@ -20,7 +20,8 @@ type IAdminController interface {
 	GetUserList(c *gin.Context)
 	UpdateUserBasicInfo(c *gin.Context)
 	DeleteUser(c *gin.Context)
-	GetAllUsersCount(c *gin.Context)
+	GetUsersCount(c *gin.Context)
+	GetAllCount(c *gin.Context)
 }
 
 type AdminController struct {
@@ -170,8 +171,17 @@ func (ac *AdminController) DeleteUser(c *gin.Context) {
 	})
 }
 
-func (ac *AdminController) GetAllUsersCount(c *gin.Context) {
-	total, code := ac.userService.GetAllUsersCount()
+func (ac *AdminController) GetUsersCount(c *gin.Context) {
+	total, code := ac.userService.GetUsersCount()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *AdminController) GetAllCount(c *gin.Context) {
+	total, code := ac.userService.GetAllCount()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    total,

@@ -16,11 +16,13 @@ type IUserService interface {
 	UpdateUserBasicInfo(requester *model.User, id uint, user *model.User) int
 	DeleteUser(id uint) int
 	CheckPassword(user *model.User) int
-	GetAllUsersCount() (int64, int)
-	// Todo UpdatePassword(username, password string) int
-	// Todo ResetPassword(username string) int
-	// Todo UpdateRole(username string) int
+	GetUsersCount() (int64, int)
+	GetAllCount() (int64, int)
 }
+
+// Todo UpdatePassword(username, password string) int
+// Todo ResetPassword(username string) int
+// Todo UpdateRole(username string) int
 
 type UserService struct {
 	userRepo *repository.UserRepo
@@ -84,6 +86,10 @@ func (us *UserService) CheckPassword(user *model.User) int {
 	return us.userRepo.CheckPassword(user)
 }
 
-func (us *UserService) GetAllUsersCount() (int64, int) {
+func (us *UserService) GetUsersCount() (int64, int) {
+	return us.userRepo.GetUsersCount()
+}
+
+func (us *UserService) GetAllCount() (int64, int) {
 	return us.userRepo.GetAllCount()
 }
