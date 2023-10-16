@@ -64,20 +64,20 @@
         ElMessage({
           message: '登录成功',
           type: 'success',
-        })
+        });
         localStorage.setItem('token', response.data.token);
         router.push("/admin/index")
       } else {
         ElMessage({
           message: response.data.message,
           type: 'error',
-        })
+        });
       }
     } catch (error) {
       ElMessage({
         message: 'An error occurred while trying to log in.',
         type: 'warning',
-      })
+      });
       console.error('An error occurred:', error);
     }
   };

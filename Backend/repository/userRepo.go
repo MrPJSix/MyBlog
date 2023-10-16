@@ -80,7 +80,7 @@ func (ur *UserRepo) Create(user *model.User) int {
 	if code == errmsg.ERROR_USERNAME_USED || code == errmsg.ERROR {
 		return code
 	}
-	code = ur.CheckFullName(user.FullName)
+	code = ur.CheckFullName(*user.FullName)
 	if code == errmsg.ERROR_USER_FULLNAME_EXIST || code == errmsg.ERROR {
 		return code
 	}
@@ -129,12 +129,13 @@ func (ur *UserRepo) UpdateBasicInfo(id uint, user *model.User) int {
 
 // 删除用户
 func (ur *UserRepo) Delete(id uint) int {
-	var user model.User
-	code := ur.CheckUserID(id)
+	var user *model.User
+	var code int
+	user, code = ur.GetByID(id)
 	if code != errmsg.SUCCESS {
 		return code
 	}
-	err := db.Where("id = ?", id).Delete(&user).Error
+	err := db.Delete(user).Error
 	if err != nil {
 		return errmsg.ERROR
 	}
