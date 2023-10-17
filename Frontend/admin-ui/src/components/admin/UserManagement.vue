@@ -245,7 +245,10 @@
         }
     ).then(async () => {
       try {
-        const response = await axios.put(`${baseURL}/user/${editedUserData.id}`);
+        const response = await axios.put(`${baseURL}/user/${editedUserData.id}`, {
+          full_name: editedUserData.full_name,
+          bio: editedUserData.bio
+        });
         if (response.data.status === 200) {
           ElMessage({
             message: '更新成功',
