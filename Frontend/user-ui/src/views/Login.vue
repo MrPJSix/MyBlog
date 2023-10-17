@@ -32,7 +32,7 @@
             <span style="color: #7a7878">已有账号?</span>
             <span
                 id="login"
-                style="font-weight: bold; color: pink;"
+                style="font-weight: bold; color: pink; cursor: pointer"
                 @click="toggleForm"
             >登录</span>
           </div>
@@ -47,7 +47,7 @@
             <span style="color: #7a7878">没有账号?</span>
             <span
                 id="register"
-                style="font-weight: bold; color: pink;"
+                style="font-weight: bold; color: pink; cursor: pointer"
                 @click="toggleForm"
             >注册</span>
           </div>
