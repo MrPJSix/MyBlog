@@ -122,7 +122,7 @@ func (ur *UserRepo) UpdateBasicInfo(id uint, user *model.User) int {
 	maps["bio"] = user.Bio
 	err := db.Model(&model.User{}).Where("id = ?", id).Updates(maps).First(&user).Error
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 		if err == gorm.ErrDuplicatedKey {
 			return errmsg.ERROR_USER_FULLNAME_EXIST
 		}
