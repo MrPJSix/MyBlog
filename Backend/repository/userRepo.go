@@ -6,6 +6,7 @@ import (
 	"myblog.backend/model"
 	"myblog.backend/utils/errmsg"
 	"myblog.backend/utils/securepw"
+	"strings"
 )
 
 /* ====================================== */
@@ -123,7 +124,7 @@ func (ur *UserRepo) UpdateBasicInfo(id uint, user *model.User) int {
 	err := db.Model(&model.User{}).Where("id = ?", id).Updates(maps).First(&user).Error
 	if err != nil {
 		log.Println(err)
-		if err == gorm.ErrDuplicatedKey {
+		if strings.Contains(err.Error(), "Duplicate entry") && strings.Contains(err.Error(), "for key 'full_name'") {
 			return errmsg.ERROR_USER_FULLNAME_EXIST
 		}
 		return errmsg.ERROR
