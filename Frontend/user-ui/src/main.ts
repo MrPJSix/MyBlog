@@ -5,6 +5,8 @@ import App from './App.vue'
 import SvgIcon from '@/components/basic/SvgIcon.vue'
 import router from './router'
 
+import 'element-plus/dist/index.css'
+
 import '@/assets/icon/iconfont.js'
 
 import '@/assets/css/reset.css'

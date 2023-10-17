@@ -83,7 +83,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		msg = errmsg.GetErrMsg(code)
 	}
 	if code != errmsg.SUCCESS {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"data":    nil,
 			"message": msg,
