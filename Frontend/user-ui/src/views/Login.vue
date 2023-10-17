@@ -2,14 +2,14 @@
   <div>
     <div class="login-page">
       <div class="container">
-        <div class="form-box" :style="{ transform: isRegister ? 'translateX(80%)' : 'translateX(0)' }">
+        <div class="form-box" :style="{ transform: isRegister ? 'translateX(82%)' : 'translateX(0)' }">
           <div class="register-box"
                :class="{ hidden: !isRegister }"
           >
             <h1>register</h1>
-            <input type="text" placeholder="用户名" v-model="r_username"/>
+            <input type="text" placeholder="用户名" v-model="r_username" title="用户名只能是字母和数字，长度为8-25"/>
             <input type="text" placeholder="昵称" v-model="r_full_name"/>
-            <input type="password" placeholder="密码" v-model="r_password"/>
+            <input type="password" placeholder="密码" v-model="r_password" title="密码只能是字母、数字和特殊字符，长度为8-25"/>
             <input type="password" placeholder="确认密码" v-model="r_confirm_password"/>
             <button @click="register">注册</button>
           </div>
