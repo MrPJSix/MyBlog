@@ -43,7 +43,7 @@ func (uc *UserController) Login(c *gin.Context) {
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"message": errmsg.GetErrMsg(code),
 		})
@@ -127,7 +127,7 @@ func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"data":    nil,
 			"message": errmsg.GetErrMsg(code),

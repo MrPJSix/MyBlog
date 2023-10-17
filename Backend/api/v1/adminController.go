@@ -42,7 +42,7 @@ func (ac *AdminController) AdminLogin(c *gin.Context) {
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"message": errmsg.GetErrMsg(code),
 		})
@@ -56,7 +56,7 @@ func (ac *AdminController) AdminLogin(c *gin.Context) {
 		})
 	} else if code == errmsg.SUCCESS && user.Role == 2 {
 		code = errmsg.ERROR_USER_NO_RIGHT
-		c.JSON(http.StatusUnauthorized, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"message": errmsg.GetErrMsg(code),
 		})
@@ -79,7 +79,7 @@ func (ac *AdminController) CreateAdmin(c *gin.Context) {
 	user.Role = 1 // 授权管理员
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"data":    nil,
 			"message": errmsg.GetErrMsg(code),
@@ -137,7 +137,7 @@ func (ac *AdminController) UpdateUserBasicInfo(c *gin.Context) {
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"data":    nil,
 			"message": errmsg.GetErrMsg(code),

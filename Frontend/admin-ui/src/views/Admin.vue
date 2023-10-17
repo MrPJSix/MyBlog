@@ -12,7 +12,7 @@ import PageHeader from "../components/admin/PageHeader.vue";
       <el-header height="10vh">
         <PageHeader></PageHeader>
       </el-header>
-      <el-main>
+      <el-main class="main">
         <router-view/>
       </el-main>
     </el-container>
@@ -22,5 +22,10 @@ import PageHeader from "../components/admin/PageHeader.vue";
 <style scoped>
 .admin {
   display: flex;
+}
+.main {
+  margin: 0;
+  padding: 0;
+  height: 90vh;
 }
 </style>

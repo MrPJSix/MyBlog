@@ -43,7 +43,7 @@ var codeMsg = map[int]string{
 	ERROR:   "Fail",
 
 	// 请求错误
-	ERROR_BAD_REQUEST: "请求错误",
+	ERROR_BAD_REQUEST: "请求格式错误",
 	// 用户模块错误
 	ERROR_USERNAME_USED:       "账号已存在",
 	ERROR_PASSWORD_WRONG:      "密码错误",

@@ -136,11 +136,12 @@ func (ac *ArticleController) UpdateArticle(c *gin.Context) {
 
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status":  code,
 			"data":    nil,
 			"message": errmsg.GetErrMsg(code),
 		})
+		return
 	}
 
 	var requester model.User
