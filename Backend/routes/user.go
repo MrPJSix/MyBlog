@@ -29,6 +29,7 @@ func InitUserRouter(group *gin.RouterGroup) {
 
 	group.Use(auth.JwtAuth())
 	{
+		group.GET("user/self/profile", userController.GetSelfProfile)
 		group.PUT("user/:id", userController.UpdateUserBasicInfo)
 
 		group.POST("article", artController.CreateArticle)

@@ -21,6 +21,7 @@ type IUserController interface {
 	GetUserInfo(c *gin.Context)
 	UpdateUserBasicInfo(c *gin.Context)
 	UpLoadAvatar(c *gin.Context)
+	GetSelfProfile(c *gin.Context)
 }
 
 type UserController struct {
@@ -166,5 +167,17 @@ func (uc *UserController) UpLoadAvatar(c *gin.Context) {
 		"status":     code,
 		"message":    errmsg.GetErrMsg(code),
 		"avatar_url": url,
+	})
+}
+
+// 获取自己的个人信息
+func (uc *UserController) GetSelfProfile(c *gin.Context) {
+	selfID := c.MustGet("user_id").(uint)
+	user, code := uc.userService.GetUserByID(selfID)
+	responseData := dto.UserToResponse(user)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"message": errmsg.GetErrMsg(code),
+		"data":    responseData,
 	})
 }
