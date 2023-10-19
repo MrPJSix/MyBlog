@@ -2,21 +2,19 @@ package dto
 
 import (
 	"myblog.backend/model"
-	"time"
 )
 
 type ArticleResponse struct {
-	ID           uint      `json:"id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Title        string    `json:"title"`
-	Desc         string    `json:"desc"`
-	Content      string    `json:"content"`
-	Img          string    `json:"img"`
-	CommentCount int       `json:"comment_count"`
-	ReadCount    int       `json:"read_count"`
-	Category     Category  `json:"category"`
-	Author       Author    `json:"author"`
+	ID           uint     `json:"id"`
+	CreatedAt    int64    `json:"created_at"`
+	UpdatedAt    int64    `json:"updated_at"`
+	Title        string   `json:"title"`
+	Content      string   `json:"content"`
+	Img          string   `json:"img"`
+	CommentCount int      `json:"comment_count"`
+	ReadCount    int      `json:"read_count"`
+	Category     Category `json:"category"`
+	Author       Author   `json:"author"`
 }
 
 type Author struct {
@@ -33,10 +31,9 @@ type Category struct {
 func ArticleToResponse(article *model.Article) *ArticleResponse {
 	return &ArticleResponse{
 		ID:           article.ID,
-		CreatedAt:    article.CreatedAt,
-		UpdatedAt:    article.UpdatedAt,
+		CreatedAt:    article.CreatedAt.Unix(),
+		UpdatedAt:    article.UpdatedAt.Unix(),
 		Title:        article.Title,
-		Desc:         article.Desc,
 		Content:      article.Content,
 		Img:          article.Img,
 		CommentCount: article.CommentCount,

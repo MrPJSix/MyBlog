@@ -30,15 +30,15 @@
       <el-icon><User /></el-icon>
       <template #title>用户管理</template>
     </el-menu-item>
-    <el-menu-item index="3">
+    <el-menu-item index="/admin/category">
       <el-icon><Memo /></el-icon>
       <template #title>分类管理</template>
     </el-menu-item>
-    <el-menu-item index="4">
+    <el-menu-item index="/admin/article">
       <el-icon><Reading /></el-icon>
       <template #title>文章管理</template>
     </el-menu-item>
-    <el-menu-item index="5">
+    <el-menu-item index="/admin/comment">
       <el-icon><ChatLineRound /></el-icon>
       <template #title>评论管理</template>
     </el-menu-item>

@@ -1,9 +1,12 @@
 package dto
 
-import "myblog.backend/model"
+import (
+	"myblog.backend/model"
+)
 
 type CommentResponse struct {
 	ID              uint               `json:"id"`
+	CreateAt        int64              `json:"create_at"`
 	Content         string             `json:"content"`
 	User            User               `json:"user"`
 	ArticleID       uint               `json:"article_id"`
@@ -31,8 +34,9 @@ func CommentToResponse(comment *model.Comment) *CommentResponse {
 	}
 	replies := CommentSliceToResponse(comment.Replies)
 	return &CommentResponse{
-		ID:      comment.ID,
-		Content: comment.Content,
+		ID:       comment.ID,
+		CreateAt: comment.CreatedAt.Unix(),
+		Content:  comment.Content,
 		User: User{
 			UserID:    comment.UserID,
 			FullName:  comment.User.FullName,
