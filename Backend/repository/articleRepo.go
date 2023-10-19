@@ -46,7 +46,6 @@ func (ar *ArticleRepo) updateAndPreload(article *model.Article) error {
 	var maps = make(map[string]interface{})
 	maps["title"] = article.Title
 	maps["category_id"] = article.CategoryID
-	maps["desc"] = article.Desc
 	maps["content"] = article.Content
 
 	err := db.Model(&model.Article{}).Where("id = ?", article.ID).Updates(&maps).Error
