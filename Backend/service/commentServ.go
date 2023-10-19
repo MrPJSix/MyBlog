@@ -62,6 +62,7 @@ func (cs *CommentService) DeleteComment(requester *model.User, id uint) int {
 	return cs.commentRepo.Delete(id)
 }
 
+// 获取根评论
 func (cs *CommentService) buildCommentReplies(rootID uint, childCommentsMap map[uint][]model.Comment) []model.Comment {
 	replies := childCommentsMap[rootID]
 	sort.Slice(replies, func(i, j int) bool {
@@ -95,6 +96,27 @@ func (cs *CommentService) GetRootCommentsByArticleID(articleID uint) ([]model.Co
 	return rootComments, errmsg.SUCCESS
 }
 
-func (cs *CommentService) GetAllArticlesCount() (int64, int) {
+// 获取根评论的回复
+func (cs *CommentService) GetRepliesByRoot(rootCommentID uint, pageSize, pageNum int) ([]model.Comment, int) {
+	var offset int
+	if pageSize >= 100 {
+		pageSize = 100
+	} else if pageSize <= 0 {
+		pageSize = -1
+	}
+	if pageNum <= 0 {
+		offset = -1
+	} else {
+		offset = (pageNum - 1) * pageSize
+	}
+	relies, code := cs.commentRepo.GetRepliesByRoot(rootCommentID, pageSize, offset)
+	if code != errmsg.SUCCESS {
+		return nil, code
+	}
+	return relies, code
+}
+
+// 获取评论总数
+func (cs *CommentService) GetAllCommentsCount() (int64, int) {
 	return cs.commentRepo.GetAllCount()
 }

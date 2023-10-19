@@ -14,9 +14,10 @@ type ICommentRepo interface {
 	GetByID(id uint) (*model.Comment, int)
 	Create(comment *model.Comment) int
 	GetByArticleID(articleID uint) ([]model.Comment, int64, int)
-	Delete(id uint) int
 	GetRootByArticleID(articleID uint) ([]model.Comment, int)
 	GetRepliesByArticleID(articleID uint) ([]model.Comment, int)
+	GetRepliesByRoot(rootCommentID uint, pageSize, offset int) ([]model.Comment, int)
+	Delete(id uint) int
 	GetAllCount() (int64, int)
 }
 
@@ -97,6 +98,19 @@ func (commentRepo *CommentRepo) GetRepliesByArticleID(articleID uint) ([]model.C
 	return replies, errmsg.SUCCESS
 }
 
+// 获取根评论的所有回复
+func (commentRepo *CommentRepo) GetRepliesByRoot(rootCommentID uint, pageSize, offset int) ([]model.Comment, int) {
+	var replies []model.Comment
+	err := db.Preload("User").Preload("RepliedUser").
+		Where("root_comment_id = ? AND parent_comment_id IS NOT NULL", rootCommentID).
+		Limit(pageSize).Offset(offset).
+		Find(&replies).Error
+	if err != nil {
+		return nil, errmsg.ERROR
+	}
+	return replies, errmsg.SUCCESS
+}
+
 // 删除评论
 func (commentRepo *CommentRepo) Delete(id uint) int {
 	_, code := commentRepo.GetByID(id)
@@ -110,6 +124,7 @@ func (commentRepo *CommentRepo) Delete(id uint) int {
 	return errmsg.SUCCESS
 }
 
+// 获取评论总数
 func (commentRepo *CommentRepo) GetAllCount() (int64, int) {
 	var total int64
 	err := db.Model(&model.Comment{}).Select("id").Count(&total).Error

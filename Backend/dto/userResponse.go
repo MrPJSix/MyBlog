@@ -5,7 +5,7 @@ import "myblog.backend/model"
 type UserResponse struct {
 	ID        uint    `json:"id"`
 	Username  string  `json:"username"`
-	FullName  *string `json:"full_name"`
+	FullName  string  `json:"full_name"`
 	Bio       string  `json:"bio"`
 	Role      uint8   `json:"role"`
 	AvatarURL *string `json:"avatar_url"`

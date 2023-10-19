@@ -53,7 +53,7 @@
             <el-input v-model="editedCategoryData.id" disabled style="width:300px"/>
           </el-form-item>
           <el-form-item label="分类名" prop="name" label-width="100px">
-            <el-input v-model="editedCategoryData.username" style="width:300px"/>
+            <el-input v-model="editedCategoryData.name" style="width:300px"/>
           </el-form-item>
         </el-form>
         <template #footer>

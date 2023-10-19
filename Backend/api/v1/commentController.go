@@ -17,6 +17,7 @@ type ICommentController interface {
 	GetCommentsByArticleID(c *gin.Context)
 	DeleteComment(c *gin.Context)
 	GetRootCommentsByArticleID(c *gin.Context)
+	GetRepliesByRootComment(c *gin.Context)
 	GetAllCommentsCount(c *gin.Context)
 }
 
@@ -135,8 +136,25 @@ func (cc *CommentController) DeleteComment(c *gin.Context) {
 	})
 }
 
+func (cc *CommentController) GetRepliesByRootComment(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	id, _ := strconv.Atoi(c.Param("id"))
+
+	replies, code := cc.commentService.GetRepliesByRoot(uint(id), pageSize, pageNum)
+
+	responseData := dto.CommentSliceToResponse(replies)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+
+}
+
 func (cc *CommentController) GetAllCommentsCount(c *gin.Context) {
-	total, code := cc.commentService.GetAllArticlesCount()
+	total, code := cc.commentService.GetAllCommentsCount()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    total,

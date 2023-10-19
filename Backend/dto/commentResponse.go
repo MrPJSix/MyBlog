@@ -19,20 +19,24 @@ type CommentResponse struct {
 
 type User struct {
 	UserID    uint    `json:"user_id"`
-	FullName  *string `json:"full_name"`
+	FullName  string  `json:"full_name"`
 	AvatarURL *string `json:"avatar_url"`
 }
 
 func CommentToResponse(comment *model.Comment) *CommentResponse {
 	var repliedUser *User
-	if comment.RepliedUserID != nil {
+	if comment.RepliedUserID != nil && comment.RepliedUser != nil {
 		repliedUser = &User{
 			UserID:    *comment.RepliedUserID,
 			FullName:  comment.RepliedUser.FullName,
-			AvatarURL: comment.RepliedUser.AvatarURL,
+			AvatarURL: nil,
 		}
 	}
 	replies := CommentSliceToResponse(comment.Replies)
+	totalReplies := len(replies)
+	if totalReplies >= 3 {
+		replies = replies[:3]
+	}
 	return &CommentResponse{
 		ID:       comment.ID,
 		CreateAt: comment.CreatedAt.Unix(),
@@ -47,7 +51,7 @@ func CommentToResponse(comment *model.Comment) *CommentResponse {
 		ParentCommentID: comment.ParentCommentID,
 		RepliedUser:     repliedUser,
 		Replies:         replies,
-		TotalReplies:    len(replies),
+		TotalReplies:    totalReplies,
 	}
 }
 

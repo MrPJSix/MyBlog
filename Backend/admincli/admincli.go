@@ -30,7 +30,7 @@ func createAdminUser() {
 	var user model.User
 	user.Username = username
 	user.Password = password
-	user.FullName = &username
+	user.FullName = username
 	user.Role = 1 // 授权管理员
 	userService := service.NewUserService()
 	code := userService.CreateUser(&user)

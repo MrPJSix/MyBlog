@@ -25,6 +25,7 @@ func InitUserRouter(group *gin.RouterGroup) {
 	group.GET("articles", artController.GetArticleList)
 
 	group.GET("article/:id/comments", commentController.GetRootCommentsByArticleID)
+	group.GET("comment/:id/replies", commentController.GetRepliesByRootComment)
 
 	group.Use(auth.JwtAuth())
 	{

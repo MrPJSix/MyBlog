@@ -19,7 +19,7 @@ type ArticleResponse struct {
 
 type Author struct {
 	UserID    uint    `json:"user_id"`
-	FullName  *string `json:"full_name"`
+	FullName  string  `json:"full_name"`
 	AvatarURL *string `json:"avatar_url"`
 }
 

@@ -81,7 +81,7 @@ func (ur *UserRepo) Create(user *model.User) int {
 	if code == errmsg.ERROR_USERNAME_USED || code == errmsg.ERROR {
 		return code
 	}
-	code = ur.CheckFullName(*user.FullName)
+	code = ur.CheckFullName(user.FullName)
 	if code == errmsg.ERROR_USER_FULLNAME_EXIST || code == errmsg.ERROR {
 		return code
 	}
