@@ -30,7 +30,7 @@ func InitUserRouter(group *gin.RouterGroup) {
 	group.Use(auth.JwtAuth())
 	{
 		group.GET("user/self/profile", userController.GetSelfProfile)
-		group.PUT("user/:id", userController.UpdateUserBasicInfo)
+		group.PUT("user/self/profile", userController.UpdateSelfBasicInfo)
 
 		group.POST("article", artController.CreateArticle)
 		group.PUT("article/:id", artController.UpdateArticle)

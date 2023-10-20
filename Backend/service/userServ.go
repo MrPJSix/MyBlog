@@ -14,6 +14,7 @@ type IUserService interface {
 	GetUserByID(id uint) (*model.User, int)
 	GetUserList(pageSize, pageNum int) ([]model.User, int64, int)
 	UpdateUserBasicInfo(requester *model.User, id uint, user *model.User) int
+	UpdateSelfBasicInfo(id uint, user *model.User) int
 	DeleteUser(id uint) int
 	CheckPassword(user *model.User) int
 	GetUsersCount() (int64, int)
@@ -70,11 +71,16 @@ func (us *UserService) GetUserList(pageSize, pageNum int) ([]model.User, int64, 
 	return us.userRepo.GetList(pageSize, offset)
 }
 
-// 编辑用户基础信息(仅限于用户名称、个人简介)
+// 编辑用户基础信息(仅限于用户名称、个人简介，管理员使用)
 func (us *UserService) UpdateUserBasicInfo(requester *model.User, id uint, user *model.User) int {
 	if !us.checkUserRight(requester, id) {
 		return errmsg.ERROR_USER_NO_RIGHT
 	}
+	return us.userRepo.UpdateBasicInfo(id, user)
+}
+
+// 编辑用户个人信息(仅限于用户名称、个人简介，个人更新使用)
+func (us *UserService) UpdateSelfBasicInfo(id uint, user *model.User) int {
 	return us.userRepo.UpdateBasicInfo(id, user)
 }
 

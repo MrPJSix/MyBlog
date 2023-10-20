@@ -19,7 +19,7 @@ type IUserController interface {
 	Login(c *gin.Context)
 	Register(c *gin.Context)
 	GetUserInfo(c *gin.Context)
-	UpdateUserBasicInfo(c *gin.Context)
+	UpdateSelfBasicInfo(c *gin.Context)
 	UpLoadAvatar(c *gin.Context)
 	GetSelfProfile(c *gin.Context)
 }
@@ -121,10 +121,10 @@ func (uc *UserController) GetUserInfo(c *gin.Context) {
 }
 
 // 编辑用户基本信息（只限于FullName, Bio）
-func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
+func (uc *UserController) UpdateSelfBasicInfo(c *gin.Context) {
 	var user model.User
 	var code int
-	id, _ := strconv.Atoi(c.Param("id"))
+	id := c.MustGet("user_id").(uint)
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
@@ -136,11 +136,7 @@ func (uc *UserController) UpdateUserBasicInfo(c *gin.Context) {
 		return
 	}
 
-	var requester model.User
-	requester.ID = c.MustGet("user_id").(uint)
-	requester.Role = c.MustGet("role").(uint8)
-
-	code = uc.userService.UpdateUserBasicInfo(&requester, uint(id), &user)
+	code = uc.userService.UpdateSelfBasicInfo(uint(id), &user)
 	var responseData *dto.UserResponse
 	if code == errmsg.SUCCESS {
 		responseData = dto.UserToResponse(&user)

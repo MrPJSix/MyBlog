@@ -7,23 +7,23 @@ import (
 
 type Comment struct {
 	gorm.Model
-	Content         string `gorm:"type:varchar(500);not null" json:"content"`
-	UserID          uint   `json:"user_id"`
+	Content         string `gorm:"type:varchar(500);not null;comment:评论内容" json:"content"`
+	UserID          uint   `gorm:"comment:评论者ID" json:"user_id"`
 	User            User   `json:"user"`
-	ArticleID       uint   `json:"article_id"`
+	ArticleID       uint   `gorm:"comment:评论所属文章ID" json:"article_id"`
 	Article         Article
-	RootCommentID   uint      `gorm:"index" json:"root_comment_id"`
+	RootCommentID   uint      `gorm:"index;comment:评论所属根评论ID" json:"root_comment_id"`
 	RootComment     *Comment  `gorm:"foreignKey:RootCommentID" json:"root_comment"`
-	ParentCommentID *uint     `gorm:"index" json:"parent_comment_id"`
+	ParentCommentID *uint     `gorm:"index;comment:该评论回复的评论ID" json:"parent_comment_id"`
 	ParentComment   *Comment  `gorm:"foreignKey:ParentCommentID" json:"parent_comment"`
-	RepliedUserID   *uint     `json:"replied_user_id"`
+	RepliedUserID   *uint     `gorm:"comment:该评论回复的评论者ID" json:"replied_user_id"`
 	RepliedUser     *User     `gorm:"foreignKey:RepliedUserID" json:"replied_user"`
-	Replies         []Comment `gorm:"foreignKey:ParentCommentID" json:"replies"`
-	Likes           int       `gorm:"default:0;not null" json:"likes"'`
+	Replies         []Comment `gorm:"foreignKey:ParentCommentID;" json:"replies"`
+	Likes           int       `gorm:"default:0;not null;comment:点赞数" json:"likes"'`
 }
 
 func (comment *Comment) BeforeCreate(tx *gorm.DB) error {
-	log.Println("你好")
+	log.Println("创建评论前的处理...")
 	if comment.ParentCommentID != nil {
 		var repliedComment Comment
 		err := tx.Select("user_id", "root_comment_id").Where("id = ?", *comment.ParentCommentID).First(&repliedComment).Error
@@ -46,6 +46,26 @@ func (comment *Comment) AfterCreate(tx *gorm.DB) error {
 	if comment.ParentCommentID == nil {
 		comment.RootCommentID = comment.ID
 		tx.Model(comment).Update("root_comment_id", comment.RootCommentID)
+		var article Article
+		tx.Select("user_id").Where("id = ?", comment.ArticleID).First(&article)
+		notification := &Notification{
+			ReceiverID: article.UserID,
+			SenderID:   comment.UserID,
+			ReplyID:    comment.ID,
+			ArticleID:  comment.ArticleID,
+			IsRead:     false,
+		}
+		tx.Create(notification)
+	} else if comment.ParentCommentID != nil && comment.RepliedUserID != nil { // 给用户创建一条通知
+		notification := &Notification{
+			ReceiverID: *comment.RepliedUserID,
+			SenderID:   comment.UserID,
+			CommentID:  comment.ParentCommentID,
+			ReplyID:    comment.ID,
+			ArticleID:  comment.ArticleID,
+			IsRead:     false,
+		}
+		tx.Create(notification)
 	}
 
 	if err != nil {
