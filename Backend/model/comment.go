@@ -3,6 +3,7 @@ package model
 import (
 	"gorm.io/gorm"
 	"log"
+	"time"
 )
 
 type Comment struct {
@@ -50,6 +51,7 @@ func (comment *Comment) AfterCreate(tx *gorm.DB) error {
 		var article Article
 		tx.Select("user_id").Where("id = ?", comment.ArticleID).First(&article)
 		notification := &Notification{
+			CreateAt:   time.Now(),
 			ReceiverID: article.UserID,
 			SenderID:   comment.UserID,
 			ReplyID:    comment.ID,
@@ -59,6 +61,7 @@ func (comment *Comment) AfterCreate(tx *gorm.DB) error {
 		tx.Create(notification)
 	} else if comment.ParentCommentID != nil && comment.RepliedUserID != nil { // 给用户创建一条通知
 		notification := &Notification{
+			CreateAt:   time.Now(),
 			ReceiverID: *comment.RepliedUserID,
 			SenderID:   comment.UserID,
 			CommentID:  comment.ParentCommentID,
