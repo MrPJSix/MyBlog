@@ -12,7 +12,7 @@ type Comment struct {
 	User            User   `json:"user"`
 	ArticleID       uint   `gorm:"comment:评论所属文章ID" json:"article_id"`
 	Article         Article
-	RootCommentID   uint      `gorm:"index;comment:评论所属根评论ID" json:"root_comment_id"`
+	RootCommentID   *uint     `gorm:"index;comment:评论所属根评论ID" json:"root_comment_id"`
 	RootComment     *Comment  `gorm:"foreignKey:RootCommentID" json:"root_comment"`
 	ParentCommentID *uint     `gorm:"index;comment:该评论回复的评论ID" json:"parent_comment_id"`
 	ParentComment   *Comment  `gorm:"foreignKey:ParentCommentID" json:"parent_comment"`
@@ -35,6 +35,7 @@ func (comment *Comment) BeforeCreate(tx *gorm.DB) error {
 		comment.RepliedUserID = &repliedComment.UserID
 		comment.RootCommentID = repliedComment.RootCommentID
 	}
+	log.Println(comment.ParentCommentID)
 	return nil
 }
 
@@ -44,7 +45,7 @@ func (comment *Comment) AfterCreate(tx *gorm.DB) error {
 		Error
 
 	if comment.ParentCommentID == nil {
-		comment.RootCommentID = comment.ID
+		comment.RootCommentID = &comment.ID
 		tx.Model(comment).Update("root_comment_id", comment.RootCommentID)
 		var article Article
 		tx.Select("user_id").Where("id = ?", comment.ArticleID).First(&article)

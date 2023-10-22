@@ -10,7 +10,7 @@ type ArticleResponse struct {
 	UpdatedAt    int64    `json:"updated_at"`
 	Title        string   `json:"title"`
 	Content      string   `json:"content"`
-	Img          string   `json:"img"`
+	Img          *string  `json:"img"`
 	CommentCount int      `json:"comment_count"`
 	ReadCount    int      `json:"read_count"`
 	Category     Category `json:"category"`

@@ -13,6 +13,8 @@ type ICategoryRepo interface {
 	CheckByName(name string) int
 	Create(category *model.Category) int
 	GetInfo(id uint) (model.Category, int)
+	GetPrimary() ([]model.Category, int64, int)
+	GetSecondary(parentID int) ([]model.Category, int64, int)
 	GetList(pageSize, offset int) ([]model.Category, int64, int)
 	Update(id uint, category *model.Category) int
 	Delete(id uint) int
@@ -36,7 +38,7 @@ func (cr *CategoryRepo) CheckByName(name string) int {
 	return errmsg.SUCCESS
 }
 
-// 新增分类
+// 新增一级分类
 func (cr *CategoryRepo) Create(category *model.Category) int {
 	code := cr.CheckByName(category.Name)
 	if code != errmsg.SUCCESS {
@@ -60,6 +62,30 @@ func (cr *CategoryRepo) GetInfo(id uint) (model.Category, int) {
 		return cate, errmsg.ERROR
 	}
 	return cate, errmsg.SUCCESS
+}
+
+// 获取一级分类
+func (cr *CategoryRepo) GetPrimary() ([]model.Category, int64, int) {
+	var cateList []model.Category
+	var total int64
+
+	err := db.Where("parent_id IS NULL").Find(&cateList).Count(&total).Error
+	if err != nil {
+		return nil, 0, errmsg.ERROR
+	}
+	return cateList, total, errmsg.SUCCESS
+}
+
+// 获取二级分类
+func (cr *CategoryRepo) GetSecondary(parentID int) ([]model.Category, int64, int) {
+	var cateList []model.Category
+	var total int64
+
+	err := db.Where("parent_id = ?", parentID).Find(&cateList).Count(&total).Error
+	if err != nil {
+		return nil, 0, errmsg.ERROR
+	}
+	return cateList, total, errmsg.SUCCESS
 }
 
 // 查询分类列表

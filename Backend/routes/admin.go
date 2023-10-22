@@ -18,9 +18,11 @@ func InitAdminRouter(group *gin.RouterGroup) {
 	group.Use(auth.JwtAuth(), auth.AdminAuthorization())
 	{
 		// 分类模块的路由接口
-		group.POST("category", cateController.CreateCategory)
+		group.POST("category", cateController.CreatePrimaryCategory)
+		group.POST("category/:id/sub", cateController.CreateSecondaryCategory)
 		group.GET("category/:id", cateController.GetCategoryInfo)
-		group.GET("categories", cateController.GetCategoryList)
+		group.GET("categories/primary", cateController.GetPrimaryCategories)
+		group.GET("category/:id/subs", cateController.GetSecondaryCategories)
 		group.PUT("category/:id", cateController.UpdateCategory)
 		group.DELETE("category/:id", cateController.DeleteCategory)
 

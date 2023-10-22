@@ -85,7 +85,7 @@ func (cs *CommentService) GetRootCommentsByArticleID(articleID uint) ([]model.Co
 	}
 	childCommentsMap := make(map[uint][]model.Comment)
 	for _, reply := range allReplies {
-		childCommentsMap[reply.RootCommentID] = append(childCommentsMap[reply.RootCommentID], reply)
+		childCommentsMap[*reply.RootCommentID] = append(childCommentsMap[*reply.RootCommentID], reply)
 	}
 
 	// 为每个根评论构建评论树

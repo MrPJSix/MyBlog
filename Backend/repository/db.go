@@ -47,6 +47,7 @@ func initMySQL() {
 		&model.Category{},
 		&model.User{},
 		&model.Comment{},
+		&model.Notification{},
 	)
 
 	if err != nil {

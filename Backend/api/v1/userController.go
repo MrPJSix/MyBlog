@@ -3,7 +3,8 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"log"
-	"myblog.backend/dto"
+	dto2 "myblog.backend/dto/request"
+	"myblog.backend/dto/response"
 	"myblog.backend/middleware/auth"
 	"myblog.backend/model"
 	"myblog.backend/service"
@@ -69,7 +70,7 @@ func (uc *UserController) Login(c *gin.Context) {
 
 // 注册
 func (uc *UserController) Register(c *gin.Context) {
-	var rq dto.RegisterRequest
+	var rq dto2.RegisterRequest
 	var code int
 	var msg string
 	code = errmsg.SUCCESS
@@ -92,7 +93,7 @@ func (uc *UserController) Register(c *gin.Context) {
 		return
 	}
 
-	user := dto.RegisterRequestToUser(&rq)
+	user := dto2.RegisterRequestToUser(&rq)
 	user.Role = 2
 	code = uc.userService.CreateUser(user)
 	var responseData *dto.UserResponse

@@ -14,6 +14,8 @@ import (
 type ICategoryController interface {
 	CreateCategory(c *gin.Context)
 	GetCategoryInfo(c *gin.Context)
+	GetPrimaryCategories(c *gin.Context)
+	GetSecondaryCategories(c *gin.Context)
 	GetCategoryList(c *gin.Context)
 	UpdateCategory(c *gin.Context)
 	DeleteCategory(c *gin.Context)
@@ -30,14 +32,36 @@ func NewCategoryController() *CategoryController {
 
 /* ====================================== */
 
-// 添加分类
-func (cc *CategoryController) CreateCategory(c *gin.Context) {
+// 添加一级分类
+func (cc *CategoryController) CreatePrimaryCategory(c *gin.Context) {
 	var category model.Category
 	err := c.ShouldBindJSON(&category)
 	code := errmsg.SUCCESS
 	if err != nil {
 		code = errmsg.ERROR_BAD_REQUEST
 	} else {
+		category.ParentID = nil
+		code = cc.categoryService.CreateCategory(&category)
+	}
+	c.JSON(
+		http.StatusOK, gin.H{
+			"status":  code,
+			"data":    &category,
+			"message": errmsg.GetErrMsg(code),
+		},
+	)
+}
+
+// 添加二级分类
+func (cc *CategoryController) CreateSecondaryCategory(c *gin.Context) {
+	parentID, _ := strconv.Atoi(c.Param("id"))
+	var category model.Category
+	err := c.ShouldBindJSON(&category)
+	code := errmsg.SUCCESS
+	if err != nil {
+		code = errmsg.ERROR_BAD_REQUEST
+	} else {
+		category.ParentID = &parentID
 		code = cc.categoryService.CreateCategory(&category)
 	}
 	c.JSON(
@@ -62,6 +86,28 @@ func (cc *CategoryController) GetCategoryInfo(c *gin.Context) {
 			"message": errmsg.GetErrMsg(code),
 		},
 	)
+}
+
+func (cc *CategoryController) GetPrimaryCategories(c *gin.Context) {
+	data, total, code := cc.categoryService.GetPrimaryCategories()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    data,
+		"total":   total,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (cc *CategoryController) GetSecondaryCategories(c *gin.Context) {
+	parentID, _ := strconv.Atoi(c.Param("id"))
+	data, total, code := cc.categoryService.GetSecondaryCategories(parentID)
+	c.JSON(http.StatusOK, gin.H{
+		"status":     code,
+		"parent_cid": parentID,
+		"data":       data,
+		"total":      total,
+		"message":    errmsg.GetErrMsg(code),
+	})
 }
 
 // 查询分类列表

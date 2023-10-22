@@ -17,7 +17,8 @@ func InitUserRouter(group *gin.RouterGroup) {
 	group.GET("user/:id", userController.GetUserInfo)
 
 	group.GET("category/:id", cateController.GetCategoryInfo)
-	group.GET("categories", cateController.GetCategoryList)
+	group.GET("categories/primary", cateController.GetPrimaryCategories)
+	group.GET("category/:id/subs", cateController.GetSecondaryCategories)
 
 	group.GET("user/:id/articles", artController.GetListByUser)
 	group.GET("category/:id/articles", artController.GetListByCategory)

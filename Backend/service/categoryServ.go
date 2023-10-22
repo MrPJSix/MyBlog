@@ -10,6 +10,8 @@ import (
 type ICategoryService interface {
 	CreateCategory(category *model.Category) int
 	GetCategoryInfo(id uint) (model.Category, int)
+	GetPrimaryCategories() ([]model.Category, int64, int)
+	GetSecondaryCategories(parentID int) ([]model.Category, int64, int)
 	GetCategoryList(pageSize, pageNum int) ([]model.Category, int64, int)
 	UpdateCategory(id uint, category *model.Category) int
 	DeleteCategory(id uint) int
@@ -32,6 +34,13 @@ func (cs *CategoryService) CreateCategory(category *model.Category) int {
 
 func (cs *CategoryService) GetCategoryInfo(id uint) (model.Category, int) {
 	return cs.categoryRepo.GetInfo(id)
+}
+
+func (cs *CategoryService) GetPrimaryCategories() ([]model.Category, int64, int) {
+	return cs.categoryRepo.GetPrimary()
+}
+func (cs *CategoryService) GetSecondaryCategories(parentID int) ([]model.Category, int64, int) {
+	return cs.categoryRepo.GetSecondary(parentID)
 }
 
 func (cs *CategoryService) GetCategoryList(pageSize, pageNum int) ([]model.Category, int64, int) {

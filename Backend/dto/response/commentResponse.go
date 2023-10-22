@@ -47,7 +47,7 @@ func CommentToResponse(comment *model.Comment) *CommentResponse {
 			AvatarURL: comment.User.AvatarURL,
 		},
 		ArticleID:       comment.ArticleID,
-		RootCommentID:   comment.RootCommentID,
+		RootCommentID:   *comment.RootCommentID,
 		ParentCommentID: comment.ParentCommentID,
 		RepliedUser:     repliedUser,
 		Replies:         replies,

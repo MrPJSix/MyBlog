@@ -2,7 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"myblog.backend/dto"
+	"myblog.backend/dto/response"
 	"myblog.backend/model"
 	"myblog.backend/service"
 	"myblog.backend/utils/errmsg"
