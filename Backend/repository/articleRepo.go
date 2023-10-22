@@ -127,14 +127,31 @@ func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) 
 	var cateArtList []model.Article
 	var total int64
 
-	err := db.Preload("Category").Preload("User").
-		Limit(pageSize).Offset(offset).
-		Where("category_id = ?", categoryID).
-		Find(&cateArtList).Count(&total).Error
-	if err != nil {
-		return cateArtList, 0, errmsg.ERROR_CATE_NOT_EXIST
+	var category model.Category
+	db.Preload("SubCategories").Where("id = ?", categoryID).First(&category)
+	if category.ParentID != nil {
+		err := db.Preload("Category").Preload("User").
+			Limit(pageSize).Offset(offset).
+			Where("category_id = ?", categoryID).
+			Find(&cateArtList).Count(&total).Error
+		if err != nil {
+			return cateArtList, 0, errmsg.ERROR_CATE_NOT_EXIST
+		}
+		return cateArtList, total, errmsg.SUCCESS
+	} else {
+		var cids []int
+		for _, sub := range category.SubCategories {
+			cids = append(cids, sub.ID)
+		}
+		err := db.Preload("Category").Preload("User").
+			Limit(pageSize).Offset(offset).
+			Where("category_id IN ?", cids).
+			Find(&cateArtList).Count(&total).Error
+		if err != nil {
+			return cateArtList, 0, errmsg.ERROR_CATE_NOT_EXIST
+		}
+		return cateArtList, total, errmsg.SUCCESS
 	}
-	return cateArtList, total, errmsg.SUCCESS
 }
 
 // 通过用户查询文章列表

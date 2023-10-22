@@ -81,7 +81,7 @@ func (cr *CategoryRepo) GetSecondary(parentID int) ([]model.Category, int64, int
 	var cateList []model.Category
 	var total int64
 
-	err := db.Where("parent_id = ?", parentID).Find(&cateList).Count(&total).Error
+	err := db.Preload("ParentCategory").Where("parent_id = ?", parentID).Find(&cateList).Count(&total).Error
 	if err != nil {
 		return nil, 0, errmsg.ERROR
 	}
