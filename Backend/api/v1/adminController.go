@@ -2,7 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"myblog.backend/dto/response"
+	dto "myblog.backend/dto/response"
 	"myblog.backend/middleware/auth"
 	"myblog.backend/model"
 	"myblog.backend/service"

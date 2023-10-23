@@ -11,6 +11,7 @@ func InitUserRouter(group *gin.RouterGroup) {
 	artController := v1.NewArticleController()
 	userController := v1.NewUserController()
 	commentController := v1.NewCommentController()
+	notifController := v1.NewNotificationController()
 
 	group.POST("login", userController.Login)
 	group.POST("register", userController.Register)
@@ -32,6 +33,7 @@ func InitUserRouter(group *gin.RouterGroup) {
 	{
 		group.GET("user/self/profile", userController.GetSelfProfile)
 		group.PUT("user/self/profile", userController.UpdateSelfBasicInfo)
+		group.POST("user/avatar", userController.UpLoadAvatar)
 
 		group.POST("article", artController.CreateArticle)
 		group.PUT("article/:id", artController.UpdateArticle)
@@ -41,6 +43,9 @@ func InitUserRouter(group *gin.RouterGroup) {
 		group.POST("article/:id/comment/:cid/reply", commentController.CreateReply)
 		group.DELETE("comment/:id", commentController.DeleteComment)
 
-		group.POST("user/avatar", userController.UpLoadAvatar)
+		group.GET("user/notification/unread", notifController.GetUnReadNotifsByReciver)
+		group.GET("user/notification/read", notifController.GetReadNotifsByReciver)
+		group.PUT("user/notifications/unread", notifController.MarkAsReadNotifs)
+		group.DELETE("user/notifications/read", notifController.DeletReadNotifs)
 	}
 }

@@ -12,7 +12,7 @@ type Notification struct {
 	SenderID   uint      `gorm:"comment:发送者ID(回复人)" json:"sender_id"`
 	Sender     User      `gorm:"foreignKey:SenderID" json:"sender"`
 	CommentID  *uint     `gorm:"comment:被回复的评论ID" json:"comment_id"`
-	Comment    Comment   `json:"comment"`
+	Comment    *Comment  `json:"comment"`
 	ReplyID    uint      `gorm:"comment:回复ID" json:"reply_id"`
 	Reply      Comment   `gorm:"foreignKey:ReplyID" json:"reply"`
 	ArticleID  uint      `gorm:"comment:文章ID" json:"article_id"`

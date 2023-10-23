@@ -131,6 +131,7 @@ func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) 
 	db.Preload("SubCategories").Where("id = ?", categoryID).First(&category)
 	if category.ParentID != nil {
 		err := db.Preload("Category").Preload("User").
+			Order("created_at desc").
 			Limit(pageSize).Offset(offset).
 			Where("category_id = ?", categoryID).
 			Find(&cateArtList).Count(&total).Error
@@ -144,6 +145,7 @@ func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) 
 			cids = append(cids, sub.ID)
 		}
 		err := db.Preload("Category").Preload("User").
+			Order("created_at desc").
 			Limit(pageSize).Offset(offset).
 			Where("category_id IN ?", cids).
 			Find(&cateArtList).Count(&total).Error
@@ -160,6 +162,7 @@ func (ar *ArticleRepo) GetListByUser(userID uint, pageSize, offset int) ([]model
 	var total int64
 
 	err := db.Preload("Category").
+		Order("created_at desc").
 		Limit(pageSize).Offset(offset).
 		Where("user_id = ?", userID).
 		Find(&articles).Count(&total).Error
