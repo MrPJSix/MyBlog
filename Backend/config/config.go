@@ -22,6 +22,11 @@ var (
 	EndPoint  string
 	AccessKey string
 	SecretKey string
+
+	// Redis配置
+	RdsHost     string
+	RdsPort     string
+	RdsPassword string
 )
 
 func init() {
@@ -32,6 +37,7 @@ func init() {
 	InitServerConfig(file)
 	InitDatabaseConfig(file)
 	InitMinIOConfig(file)
+	InitRedisConfit(file)
 }
 
 func InitServerConfig(file *ini.File) {
@@ -41,7 +47,7 @@ func InitServerConfig(file *ini.File) {
 }
 
 func InitDatabaseConfig(file *ini.File) {
-	database := "database-" + "production" //AppMode
+	database := "database-" + AppMode //"production" //AppMode
 	DbHost = file.Section(database).Key("DbHost").String()
 	DbPort = file.Section(database).Key("DbPort").String()
 	DbUser = file.Section(database).Key("DbUser").String()
@@ -53,4 +59,10 @@ func InitMinIOConfig(file *ini.File) {
 	EndPoint = file.Section("minio").Key("EndPoint").String()
 	AccessKey = file.Section("minio").Key("AccessKey").String()
 	SecretKey = file.Section("minio").Key("SecretKey").String()
+}
+
+func InitRedisConfit(file *ini.File) {
+	RdsHost = file.Section("redis").Key("RdsHost").String()
+	RdsPort = file.Section("redis").Key("RdsPort").String()
+	RdsPassword = file.Section("redis").Key("RdsPassword").String()
 }
