@@ -16,11 +16,13 @@ type IArticleController interface {
 	CreateArticle(c *gin.Context)
 	GetArticleInfo(c *gin.Context)
 	GetArticleList(c *gin.Context)
+	GetAllArticlesCount(c *gin.Context)
 	GetListByCategory(c *gin.Context)
+	GetCountByCategory(c *gin.Context)
 	GetListByUser(c *gin.Context)
+	GetCountByUser(c *gin.Context)
 	UpdateArticle(c *gin.Context)
 	DeleteArticle(c *gin.Context)
-	GetAllArticlesCount(c *gin.Context)
 	UserIsLiked(c *gin.Context)
 	UserLikesArticle(c *gin.Context)
 }
@@ -75,24 +77,31 @@ func (ac *ArticleController) GetArticleInfo(c *gin.Context) {
 func (ac *ArticleController) GetArticleList(c *gin.Context) {
 	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
 	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
-	title := c.Query("title")
+	//title := c.Query("title")
 
 	var articles []model.Article
-	var total int64
 	var code int
 
-	if len(title) == 0 {
-		articles, total, code = ac.articleService.GetArticleList(pageSize, pageNum)
-	} else {
-		articles, total, code = ac.articleService.GetListByTitle(title, pageSize, pageNum)
-	}
-
+	articles, code = ac.articleService.GetArticleList(pageSize, pageNum)
+	//if len(title) == 0 {
+	//	articles, code = ac.articleService.GetArticleList(pageSize, pageNum)
+	//} else {
+	//	articles, code = ac.articleService.GetListByTitle(title, pageSize, pageNum)
+	//}
 	responseData := dto.ArticleSliceToResponse(articles)
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    responseData,
-		"total":   total,
 		"meesage": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) GetAllArticlesCount(c *gin.Context) {
+	total, code := ac.articleService.GetAllArticlesCount()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
+		"message": errmsg.GetErrMsg(code),
 	})
 }
 
@@ -101,14 +110,23 @@ func (ac *ArticleController) GetListByCategory(c *gin.Context) {
 	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	articles, total, code := ac.articleService.GetListByCategory(uint(id), pageSize, pageNum)
+	articles, code := ac.articleService.GetListByCategory(uint(id), pageSize, pageNum)
 
 	responseData := dto.ArticleSliceToResponse(articles)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    responseData,
-		"total":   total,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) GetCountByCategory(c *gin.Context) {
+	categoryID, _ := strconv.Atoi(c.Param("id"))
+	total, code := ac.articleService.GetArticlesCountByCategory(uint(categoryID))
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
 		"message": errmsg.GetErrMsg(code),
 	})
 }
@@ -118,14 +136,23 @@ func (ac *ArticleController) GetListByUser(c *gin.Context) {
 	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
 	id, _ := strconv.Atoi(c.Param("id"))
 
-	articles, total, code := ac.articleService.GetListByUser(uint(id), pageSize, pageNum)
+	articles, code := ac.articleService.GetListByUser(uint(id), pageSize, pageNum)
 
 	responseData := dto.ArticleSliceToResponse(articles)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    responseData,
-		"total":   total,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) GetCountByUser(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("id"))
+	total, code := ac.articleService.GetArticlesCountByUser(uint(userID))
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
 		"message": errmsg.GetErrMsg(code),
 	})
 }
@@ -173,15 +200,6 @@ func (ac *ArticleController) DeleteArticle(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
-		"message": errmsg.GetErrMsg(code),
-	})
-}
-
-func (ac *ArticleController) GetAllArticlesCount(c *gin.Context) {
-	total, code := ac.articleService.GetAllArticlesCount()
-	c.JSON(http.StatusOK, gin.H{
-		"status":  code,
-		"data":    total,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

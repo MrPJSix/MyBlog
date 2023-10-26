@@ -13,13 +13,15 @@ type IArticleService interface {
 	checkUserRight(requester *model.User, authorID uint) bool
 	CreateArticle(article *model.Article) int
 	GetArticleInfo(id uint) (*model.Article, int)
-	GetArticleList(pageSize, pageNum int) ([]model.Article, int64, int)
-	GetListByTitle(title string, pageSize, pageNum int) ([]model.Article, int64, int)
-	GetListByCategory(articleID uint, pageSize, pageNum int) ([]model.Article, int64, int)
-	GetListByUser(userID uint, pageSize, pageNum int) ([]model.Article, int64, int)
+	GetArticleList(pageSize, pageNum int) ([]model.Article, int)
+	GetAllArticlesCount() (int64, int)
+	GetListByTitle(title string, pageSize, pageNum int) ([]model.Article, int)
+	GetListByCategory(articleID uint, pageSize, pageNum int) ([]model.Article, int)
+	GetArticlesCountByCategory(categoryID uint) (int64, int)
+	GetListByUser(userID uint, pageSize, pageNum int) ([]model.Article, int)
+	GetArticlesCountByUser(userID uint) (int64, int)
 	UpdateArticle(requester *model.User, id uint, article *model.Article) int
 	DeleteArticle(requester *model.User, id uint) int
-	GetAllArticlesCount() (int64, int)
 	UserIsLiked(articleID, userID uint) (bool, int)
 	likeSQLToRedis(articleID uint) // Deprecated: 用Redis太复杂
 	UserLikesArticle(articleID, userID uint) int
@@ -59,7 +61,7 @@ func (as *ArticleService) GetArticleInfo(id uint) (*model.Article, int) {
 	return article, code
 }
 
-func (as *ArticleService) GetArticleList(pageSize, pageNum int) ([]model.Article, int64, int) {
+func (as *ArticleService) GetArticleList(pageSize, pageNum int) ([]model.Article, int) {
 	var offset int
 	if pageSize >= 100 {
 		pageSize = 100
@@ -74,7 +76,11 @@ func (as *ArticleService) GetArticleList(pageSize, pageNum int) ([]model.Article
 	return as.articleRepo.GetList(pageSize, offset)
 }
 
-func (as *ArticleService) GetListByTitle(title string, pageSize, pageNum int) ([]model.Article, int64, int) {
+func (as *ArticleService) GetAllArticlesCount() (int64, int) {
+	return as.articleRepo.GetAllCount()
+}
+
+func (as *ArticleService) GetListByTitle(title string, pageSize, pageNum int) ([]model.Article, int) {
 	var offset int
 	if pageSize >= 100 {
 		pageSize = 100
@@ -89,7 +95,7 @@ func (as *ArticleService) GetListByTitle(title string, pageSize, pageNum int) ([
 	return as.articleRepo.GetListByTitle(title, pageSize, offset)
 }
 
-func (as *ArticleService) GetListByCategory(categoryID uint, pageSize, pageNum int) ([]model.Article, int64, int) {
+func (as *ArticleService) GetListByCategory(categoryID uint, pageSize, pageNum int) ([]model.Article, int) {
 	var offset int
 	if pageSize >= 100 {
 		pageSize = 100
@@ -104,7 +110,11 @@ func (as *ArticleService) GetListByCategory(categoryID uint, pageSize, pageNum i
 	return as.articleRepo.GetListByCategory(categoryID, pageSize, offset)
 }
 
-func (as *ArticleService) GetListByUser(userID uint, pageSize, pageNum int) ([]model.Article, int64, int) {
+func (as *ArticleService) GetArticlesCountByCategory(categoryID uint) (int64, int) {
+	return as.articleRepo.GetCountByCategory(categoryID)
+}
+
+func (as *ArticleService) GetListByUser(userID uint, pageSize, pageNum int) ([]model.Article, int) {
 	var offset int
 	if pageSize >= 100 {
 		pageSize = 100
@@ -117,6 +127,10 @@ func (as *ArticleService) GetListByUser(userID uint, pageSize, pageNum int) ([]m
 		offset = (pageNum - 1) * pageSize
 	}
 	return as.articleRepo.GetListByUser(userID, pageSize, offset)
+}
+
+func (as *ArticleService) GetArticlesCountByUser(userID uint) (int64, int) {
+	return as.articleRepo.GetCountByUser(userID)
 }
 
 func (as *ArticleService) UpdateArticle(requester *model.User, id uint, article *model.Article) int {
@@ -135,10 +149,6 @@ func (as *ArticleService) DeleteArticle(requester *model.User, id uint) int {
 		return errmsg.ERROR_USER_NO_RIGHT
 	}
 	return as.articleRepo.Delete(id)
-}
-
-func (as *ArticleService) GetAllArticlesCount() (int64, int) {
-	return as.articleRepo.GetAllCount()
 }
 
 func (as *ArticleService) UserIsLiked(articleID, userID uint) (bool, int) {

@@ -19,14 +19,16 @@ type IArticleRepo interface {
 	CheckByTitle(title string) int
 	Create(article *model.Article) int
 	GetInfo(id uint) (*model.Article, int)
-	GetList(pageSize, offset int) ([]model.Article, int64, int)
-	GetListByTitle(title string, pageSize, offset int) ([]model.Article, int64, int)
-	GetListByCategory(categoryID uint, pageSize, offset int) ([]model.Article, int64, int)
-	GetListByUser(userID uint, pageSize, offset int) ([]model.Article, int64, int)
+	GetList(pageSize, offset int) ([]model.Article, int)
+	GetAllCount() (int64, int)
+	GetListByTitle(title string, pageSize, offset int) ([]model.Article, int)
+	GetListByCategory(categoryID uint, pageSize, offset int) ([]model.Article, int)
+	GetCountByCategory(categoryID uint) (int64, int)
+	GetListByUser(userID uint, pageSize, offset int) ([]model.Article, int)
+	GetCountByUser(userID uint) (int64, int)
 	Update(id uint, article *model.Article) int
 	Delete(id uint) int
 	IncreaseReadCount(id uint)
-	GetAllCount() (int64, int)
 	UserIsLikedRds(articleID, userID uint) int // Deprecated: 用Redis太复杂
 	UserIsLikedSQL(articleID, userID uint) (bool, int)
 	IncreaseLikes(articleID, uesrID uint) int
@@ -101,40 +103,48 @@ func (ar *ArticleRepo) GetInfo(id uint) (*model.Article, int) {
 }
 
 // 查询文章列表
-func (ar *ArticleRepo) GetList(pageSize, offset int) ([]model.Article, int64, int) {
+func (ar *ArticleRepo) GetList(pageSize, offset int) ([]model.Article, int) {
 	var articleList []model.Article
-	var total int64
 
 	err := db.Preload("Category").Preload("User").
 		Order("created_at desc").
 		Limit(pageSize).Offset(offset).
-		Find(&articleList).Count(&total).Error
+		Find(&articleList).Error
 	if err != nil {
-		return articleList, 0, errmsg.ERROR
+		return articleList, errmsg.ERROR
 	}
-	return articleList, total, errmsg.SUCCESS
+	return articleList, errmsg.SUCCESS
+}
+
+// 获取所有文章总量
+func (ar *ArticleRepo) GetAllCount() (int64, int) {
+	var total int64
+	err := db.Model(&model.Article{}).Select("id").Count(&total).Error
+	if err != nil {
+		log.Println("查询文章总数失败！", err)
+		return 0, errmsg.ERROR
+	}
+	return total, errmsg.SUCCESS
 }
 
 // 通过文章标题查询文章列表
-func (ar *ArticleRepo) GetListByTitle(title string, pageSize, offset int) ([]model.Article, int64, int) {
+func (ar *ArticleRepo) GetListByTitle(title string, pageSize, offset int) ([]model.Article, int) {
 	var articleList []model.Article
-	var total int64
 
 	err := db.Preload("Category").Preload("User").
 		Order("created_at DESC").
 		Where("title LIKE ?", "%"+title+"%").
 		Limit(pageSize).Offset(offset).
-		Find(&articleList).Count(&total).Error
+		Find(&articleList).Error
 	if err != nil {
-		return nil, 0, errmsg.ERROR
+		return nil, errmsg.ERROR
 	}
-	return articleList, total, errmsg.SUCCESS
+	return articleList, errmsg.SUCCESS
 }
 
 // 通过分类名查询文章列表
-func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) ([]model.Article, int64, int) {
+func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) ([]model.Article, int) {
 	var cateArtList []model.Article
-	var total int64
 
 	var category model.Category
 	db.Preload("SubCategories").Where("id = ?", categoryID).First(&category)
@@ -143,11 +153,11 @@ func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) 
 			Order("created_at desc").
 			Limit(pageSize).Offset(offset).
 			Where("category_id = ?", categoryID).
-			Find(&cateArtList).Count(&total).Error
+			Find(&cateArtList).Error
 		if err != nil {
-			return cateArtList, 0, errmsg.ERROR_CATE_NOT_EXIST
+			return cateArtList, errmsg.ERROR_CATE_NOT_EXIST
 		}
-		return cateArtList, total, errmsg.SUCCESS
+		return cateArtList, errmsg.SUCCESS
 	} else {
 		var cids []int
 		for _, sub := range category.SubCategories {
@@ -157,28 +167,72 @@ func (ar *ArticleRepo) GetListByCategory(categoryID uint, pageSize, offset int) 
 			Order("created_at desc").
 			Limit(pageSize).Offset(offset).
 			Where("category_id IN ?", cids).
-			Find(&cateArtList).Count(&total).Error
+			Find(&cateArtList).Error
 		if err != nil {
-			return cateArtList, 0, errmsg.ERROR_CATE_NOT_EXIST
+			return cateArtList, errmsg.ERROR_CATE_NOT_EXIST
 		}
-		return cateArtList, total, errmsg.SUCCESS
+		return cateArtList, errmsg.SUCCESS
 	}
 }
 
-// 通过用户查询文章列表
-func (ar *ArticleRepo) GetListByUser(userID uint, pageSize, offset int) ([]model.Article, int64, int) {
-	var articles []model.Article
+func (ar *ArticleRepo) GetCountByCategory(categoryID uint) (int64, int) {
 	var total int64
+	var err error
+
+	var category model.Category
+	db.Preload("SubCategories").Where("id = ?", categoryID).First(&category)
+
+	if category.ParentID != nil {
+		err = db.Model(&model.Article{}).
+			Select("id").
+			Where("category_id = ?", categoryID).
+			Count(&total).Error
+	} else {
+		var cids []int
+		for _, sub := range category.SubCategories {
+			cids = append(cids, sub.ID)
+		}
+		err = db.Model(&model.Article{}).
+			Select("id").
+			Where("category_id IN ?", cids).
+			Count(&total).Error
+	}
+
+	if err != nil {
+		log.Println("查询分类下的文章总数失败！", categoryID, err)
+		return 0, errmsg.ERROR
+	}
+	return total, errmsg.SUCCESS
+}
+
+// 通过用户查询文章列表
+func (ar *ArticleRepo) GetListByUser(userID uint, pageSize, offset int) ([]model.Article, int) {
+	var articles []model.Article
 
 	err := db.Preload("Category").
 		Order("created_at desc").
 		Limit(pageSize).Offset(offset).
 		Where("user_id = ?", userID).
-		Find(&articles).Count(&total).Error
+		Find(&articles).Error
 	if err != nil {
-		return nil, 0, errmsg.ERROR
+		return nil, errmsg.ERROR
 	}
-	return articles, total, errmsg.SUCCESS
+	return articles, errmsg.SUCCESS
+}
+
+func (ar *ArticleRepo) GetCountByUser(userID uint) (int64, int) {
+	var total int64
+
+	err := db.Model(&model.Article{}).
+		Select("id").
+		Where("category_id = ?", userID).
+		Count(&total).Error
+
+	if err != nil {
+		log.Println("查询用户下的文章总数失败！", userID, err)
+		return 0, errmsg.ERROR
+	}
+	return total, errmsg.SUCCESS
 }
 
 // 编辑文章
@@ -204,17 +258,6 @@ func (ar *ArticleRepo) Delete(id uint) int {
 // 增加浏览量
 func (ar *ArticleRepo) IncreaseReadCount(id uint) {
 	db.Model(&model.Article{}).Where("id = ?", id).UpdateColumn("read_count", gorm.Expr("read_count + ?", 1))
-}
-
-// 获取所有文章总量
-func (ar *ArticleRepo) GetAllCount() (int64, int) {
-	var total int64
-	err := db.Model(&model.Article{}).Select("id").Count(&total).Error
-	if err != nil {
-		log.Println("查询文章总数失败！", err)
-		return 0, errmsg.ERROR
-	}
-	return total, errmsg.SUCCESS
 }
 
 // Deprecated: 用Redis太复杂

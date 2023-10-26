@@ -25,6 +25,9 @@ func InitUserRouter(group *gin.RouterGroup) {
 	group.GET("category/:id/articles", artController.GetListByCategory)
 	group.GET("article/:id", artController.GetArticleInfo)
 	group.GET("articles", artController.GetArticleList)
+	group.GET("articles/count", artController.GetAllArticlesCount)
+	group.GET("category/:id/articles/count", artController.GetCountByCategory)
+	group.GET("user/:id/articles/count", artController.GetCountByUser)
 
 	group.GET("article/:id/comments", commentController.GetRootCommentsByArticleID)
 	group.GET("comment/:id/replies", commentController.GetRepliesByRootComment)
