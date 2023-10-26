@@ -225,7 +225,7 @@ func (ar *ArticleRepo) GetCountByUser(userID uint) (int64, int) {
 
 	err := db.Model(&model.Article{}).
 		Select("id").
-		Where("category_id = ?", userID).
+		Where("user_id = ?", userID).
 		Count(&total).Error
 
 	if err != nil {
