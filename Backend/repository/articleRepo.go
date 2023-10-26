@@ -23,6 +23,7 @@ type IArticleRepo interface {
 	Delete(id uint) int
 	IncreaseReadCount(id uint)
 	GetAllCount() (int64, int)
+	UserIsLikedRds(userID uint) int
 }
 
 type ArticleRepo struct{}
@@ -206,4 +207,9 @@ func (ar *ArticleRepo) GetAllCount() (int64, int) {
 		return 0, errmsg.ERROR
 	}
 	return total, errmsg.SUCCESS
+}
+
+// 获取所有文章总量
+func (ar *ArticleRepo) UserIsLikedRds(userID uint) int {
+	return 0
 }

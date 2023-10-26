@@ -15,4 +15,10 @@ type Article struct {
 	Category     Category
 	UserID       uint `gorm:"not null;comment:作者ID" json:"user_id"`
 	User         User
+	Likes        int `gorm:"default:0;comment:点赞数" json:"likes"`
+}
+
+type ArtileLike struct {
+	ArticleID uint `gorm:"primaryKey" json:"article_id"`
+	UserID    uint `gorm:"primaryKey" json:"user_id"`
 }

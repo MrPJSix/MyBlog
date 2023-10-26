@@ -13,6 +13,7 @@ type ArticleResponse struct {
 	Img          *string  `json:"img"`
 	CommentCount int      `json:"comment_count"`
 	ReadCount    int      `json:"read_count"`
+	Likes        int      `json:"likes"`
 	Category     Category `json:"category"`
 	Author       Author   `json:"author"`
 }
@@ -38,6 +39,7 @@ func ArticleToResponse(article *model.Article) *ArticleResponse {
 		Img:          article.Img,
 		CommentCount: article.CommentCount,
 		ReadCount:    article.ReadCount,
+		Likes:        article.Likes,
 		Category: Category{
 			CategoryID:   article.CategoryID,
 			CategoryName: article.Category.Name,

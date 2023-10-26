@@ -12,6 +12,7 @@ type CommentResponse struct {
 	ArticleID       uint               `json:"article_id"`
 	RootCommentID   uint               `json:"root_comment_id"`
 	ParentCommentID *uint              `json:"parent_comment_id"`
+	Likes           int                `json:"likes"`
 	RepliedUser     *User              `json:"replied_user"`
 	Replies         []*CommentResponse `json:"replies"`
 	TotalReplies    int                `json:"total_replies"`
@@ -49,6 +50,7 @@ func CommentToResponse(comment *model.Comment) *CommentResponse {
 		ArticleID:       comment.ArticleID,
 		RootCommentID:   *comment.RootCommentID,
 		ParentCommentID: comment.ParentCommentID,
+		Likes:           comment.Likes,
 		RepliedUser:     repliedUser,
 		Replies:         replies,
 		TotalReplies:    totalReplies,

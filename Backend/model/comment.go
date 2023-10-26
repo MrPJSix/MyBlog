@@ -23,6 +23,11 @@ type Comment struct {
 	Likes           int       `gorm:"default:0;not null;comment:点赞数" json:"likes"'`
 }
 
+type CommentLike struct {
+	CommentID uint `gorm:"primaryKey" json:"article_id"`
+	UserID    uint `gorm:"primaryKey" json:"user_id"`
+}
+
 func (comment *Comment) BeforeCreate(tx *gorm.DB) error {
 	log.Println("创建评论前的处理...")
 	if comment.ParentCommentID != nil {
