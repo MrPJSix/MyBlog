@@ -1,10 +1,14 @@
 package repository
 
 import (
+	"context"
 	"gorm.io/gorm"
 	"log"
 	"myblog.backend/model"
 	"myblog.backend/utils/errmsg"
+	"myblog.backend/utils/rdsprefix"
+	"strconv"
+	"time"
 )
 
 /* ====================================== */
@@ -23,7 +27,11 @@ type IArticleRepo interface {
 	Delete(id uint) int
 	IncreaseReadCount(id uint)
 	GetAllCount() (int64, int)
-	UserIsLikedRds(userID uint) int
+	UserIsLikedRds(articleID, userID uint) int // Deprecated: 用Redis太复杂
+	UserIsLikedSQL(articleID, userID uint) (bool, int)
+	IncreaseLikes(articleID, uesrID uint) int
+	DecreaseLikes(articleID, userID uint) int
+	SaveLikesToRedis(articleID uint) error // Deprecated: 用Redis太复杂
 }
 
 type ArticleRepo struct{}
@@ -209,7 +217,120 @@ func (ar *ArticleRepo) GetAllCount() (int64, int) {
 	return total, errmsg.SUCCESS
 }
 
-// 获取所有文章总量
-func (ar *ArticleRepo) UserIsLikedRds(userID uint) int {
-	return 0
+// Deprecated: 用Redis太复杂
+// 查看用户是否已经点赞(Redis)
+func (ar *ArticleRepo) UserIsLikedRds(articleID, userID uint) int {
+	exists, err := rdb.Exists(context.Background(), rdsprefix.ArticleLikeSet+strconv.Itoa(int(articleID))).Result()
+	if err != nil {
+		log.Println("[Redis]无法确认set是否存在", err)
+		return errmsg.REDIS_ERROR
+	}
+	if exists != 1 {
+		return errmsg.REDIS_SET_NOT_EXISTS
+	}
+	liked, err := rdb.SIsMember(context.Background(), rdsprefix.ArticleLikeSet+strconv.Itoa(int(articleID)), userID).Result()
+	if err != nil {
+		log.Println("[Redis]无法确认member是否在set中", err)
+		return errmsg.REDIS_ERROR
+	}
+	if !liked {
+		return errmsg.REDIS_SET_ISNOT_MEMBER
+	}
+	return errmsg.REDIS_SET_IS_MEMBER
+}
+
+// 查看用户是否已经点赞(MySQL)
+func (ar *ArticleRepo) UserIsLikedSQL(articleID, userID uint) (bool, int) {
+	var articleLike model.ArticleLike
+	err := db.Where("article_id = ? AND user_id = ?", articleID, userID).First(&articleLike).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		log.Println("[MySQL]查询出错", err)
+		return false, errmsg.ERROR
+	}
+	if err == gorm.ErrRecordNotFound {
+		return false, errmsg.SUCCESS
+	}
+	return true, errmsg.SUCCESS
+}
+
+func (ar *ArticleRepo) IncreaseLikes(articleID, userID uint) int {
+	err := db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Model(&model.Article{}).Where("id = ?", articleID).
+			UpdateColumn("likes", gorm.Expr("likes + ?", 1)).Error
+		if err != nil {
+			log.Printf("文章%d增加点赞数出错\n", articleID, err)
+			return err
+		}
+		err = tx.Create(&model.ArticleLike{ArticleID: articleID, UserID: userID}).Error
+		if err != nil {
+			log.Printf("文章%d增加点赞记录出错\n", articleID, err)
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCESS
+}
+
+func (ar *ArticleRepo) DecreaseLikes(articleID, userID uint) int {
+	err := db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Model(&model.Article{}).Where("id = ?", articleID).
+			UpdateColumn("likes", gorm.Expr("likes - ?", 1)).Error
+		if err != nil {
+			log.Printf("文章%d减少点赞数出错\n", articleID, err)
+			return err
+		}
+		err = tx.Delete(&model.ArticleLike{ArticleID: articleID, UserID: userID}).Error
+		if err != nil {
+			log.Printf("文章%d减少点赞记录出错\n", articleID, err)
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCESS
+}
+
+// Deprecated: 用Redis太复杂
+func (ar *ArticleRepo) SaveLikesToRedis(articleID uint) error {
+	var ctx = context.Background()
+	// 从数据库中查询点赞某篇文章的所有用户
+	var likes []model.ArticleLike
+	err := db.Where("article_id = ?", articleID).Find(&likes).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		log.Printf("[MySQL]查询文章%v的点赞用户出错\n", articleID)
+		log.Println(err)
+		return err
+	}
+	// 分批添加到 Redis
+	batchSize := 1000 // 选择一个合适的批处理大小
+	redisKey := rdsprefix.ArticleLikeSet + strconv.Itoa(int(articleID))
+	for i := 0; i < len(likes); i += batchSize {
+		end := i + batchSize
+		if end > len(likes) {
+			end = len(likes)
+		}
+		userIDs := make([]interface{}, end-i)
+		for j := i; j < end; j++ {
+			userIDs[j-i] = likes[j].UserID
+		}
+		_, err = rdb.SAdd(ctx, redisKey, userIDs...).Result()
+		if err != nil {
+			log.Printf("[Redis]添加文章%v的点赞用户到Set出错\n", articleID)
+			log.Println(err)
+			return err
+		}
+	}
+	// 为Redis集合设置过期时间(一周)
+	_, err = rdb.Expire(ctx, redisKey, 7*24*time.Hour).Result()
+	if err != nil {
+		log.Println("[Redis]添加文章%v的点赞用户到Set出错\n")
+		return err
+	}
+
+	return nil
 }

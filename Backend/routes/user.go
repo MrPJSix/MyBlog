@@ -38,6 +38,8 @@ func InitUserRouter(group *gin.RouterGroup) {
 		group.POST("article", artController.CreateArticle)
 		group.PUT("article/:id", artController.UpdateArticle)
 		group.DELETE("article/:id", artController.DeleteArticle)
+		group.GET("article/:id/isliked", artController.UserIsLiked)
+		group.POST("article/:id/like", artController.UserLikesArticle)
 
 		group.POST("article/:id/comment", commentController.CreateCommentToArticle)
 		group.POST("article/:id/comment/:cid/reply", commentController.CreateReply)

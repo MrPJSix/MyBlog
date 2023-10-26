@@ -52,7 +52,7 @@ func initMySQL() {
 		&model.User{},
 		&model.Comment{},
 		&model.Notification{},
-		&model.ArtileLike{},
+		&model.ArticleLike{},
 		&model.CommentLike{},
 	)
 

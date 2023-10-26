@@ -5,17 +5,14 @@ import (
 )
 
 type CommentResponse struct {
-	ID              uint               `json:"id"`
-	CreateAt        int64              `json:"create_at"`
-	Content         string             `json:"content"`
-	User            User               `json:"user"`
-	ArticleID       uint               `json:"article_id"`
-	RootCommentID   uint               `json:"root_comment_id"`
-	ParentCommentID *uint              `json:"parent_comment_id"`
-	Likes           int                `json:"likes"`
-	RepliedUser     *User              `json:"replied_user"`
-	Replies         []*CommentResponse `json:"replies"`
-	TotalReplies    int                `json:"total_replies"`
+	ID           uint               `json:"id"`
+	CreateAt     int64              `json:"create_at"`
+	Content      string             `json:"content"`
+	User         User               `json:"user"`
+	Likes        int                `json:"likes"`
+	RepliedUser  *User              `json:"replied_user"`
+	Replies      []*CommentResponse `json:"replies"`
+	TotalReplies int                `json:"total_replies"`
 }
 
 type User struct {
@@ -47,13 +44,10 @@ func CommentToResponse(comment *model.Comment) *CommentResponse {
 			FullName:  comment.User.FullName,
 			AvatarURL: comment.User.AvatarURL,
 		},
-		ArticleID:       comment.ArticleID,
-		RootCommentID:   *comment.RootCommentID,
-		ParentCommentID: comment.ParentCommentID,
-		Likes:           comment.Likes,
-		RepliedUser:     repliedUser,
-		Replies:         replies,
-		TotalReplies:    totalReplies,
+		Likes:        comment.Likes,
+		RepliedUser:  repliedUser,
+		Replies:      replies,
+		TotalReplies: totalReplies,
 	}
 }
 

@@ -21,6 +21,8 @@ type IArticleController interface {
 	UpdateArticle(c *gin.Context)
 	DeleteArticle(c *gin.Context)
 	GetAllArticlesCount(c *gin.Context)
+	UserIsLiked(c *gin.Context)
+	UserLikesArticle(c *gin.Context)
 }
 
 type ArticleController struct {
@@ -180,6 +182,29 @@ func (ac *ArticleController) GetAllArticlesCount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    total,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) UserIsLiked(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	userID := c.MustGet("user_id").(uint)
+
+	data, code := ac.articleService.UserIsLiked(uint(id), userID)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    data,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) UserLikesArticle(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	userID := c.MustGet("user_id").(uint)
+
+	code := ac.articleService.UserLikesArticle(uint(id), userID)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

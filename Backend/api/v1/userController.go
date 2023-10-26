@@ -155,6 +155,7 @@ func (uc *UserController) UpLoadAvatar(c *gin.Context) {
 	var code int
 	var url string
 	if err != nil {
+		code = errmsg.ERROR_UPLOAD_USERAVT
 		log.Println("文件请求错误", err)
 	} else {
 		userID := c.MustGet("user_id").(uint)

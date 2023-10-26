@@ -36,6 +36,12 @@ const (
 
 	// code=6000... 上传文件模块错误
 	ERROR_UPLOAD_USERAVT = 6001
+
+	// code=7000... Redis模块错误
+	REDIS_ERROR            = 7000
+	REDIS_SET_NOT_EXISTS   = 7001
+	REDIS_SET_ISNOT_MEMBER = 7002
+	REDIS_SET_IS_MEMBER    = 7003
 )
 
 var codeMsg = map[int]string{
