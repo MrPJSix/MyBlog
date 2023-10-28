@@ -56,22 +56,21 @@ func ArticleToResponse(article *model.Article) *ArticleResponse {
 }
 
 func articleToResponseSlice(article *model.Article) *ArticleResponse {
-	var content string
+	var content []rune
 	if article.ContentType == "h" {
-		content = totext.StripHTMLTags(&article.Content)
+		content = []rune(totext.StripHTMLTags(&article.Content))
 	} else {
-		content = totext.MarkdownToText(&article.Content)
+		content = []rune(totext.MarkdownToText(&article.Content))
 	}
 	if len(content) > 50 {
 		content = content[:50]
 	}
-	content += "..."
 	return &ArticleResponse{
 		ID:           article.ID,
 		CreatedAt:    article.CreatedAt.Unix(),
 		UpdatedAt:    article.UpdatedAt.Unix(),
 		Title:        article.Title,
-		Content:      content,
+		Content:      string(content) + "...",
 		ContentType:  article.ContentType,
 		Img:          article.Img,
 		CommentCount: article.CommentCount,
