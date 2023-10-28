@@ -62,8 +62,8 @@ func articleToResponseSlice(article *model.Article) *ArticleResponse {
 	} else {
 		content = []rune(totext.MarkdownToText(&article.Content))
 	}
-	if len(content) > 50 {
-		content = content[:50]
+	if len(content) > 200 {
+		content = content[:200]
 	}
 	return &ArticleResponse{
 		ID:           article.ID,

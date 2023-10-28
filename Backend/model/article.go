@@ -25,8 +25,8 @@ type ArticleLike struct {
 }
 
 func (article *Article) BeforeSave(_ *gorm.DB) error {
-	if article.Content != "h" && article.Content != "m" {
-		article.Content = "m"
+	if article.ContentType != "h" && article.ContentType != "m" {
+		article.ContentType = "m"
 	}
 	return nil
 }
