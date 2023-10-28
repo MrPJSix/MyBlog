@@ -3,6 +3,7 @@ package dto
 import (
 	"myblog.backend/model"
 	"myblog.backend/utils/totext"
+	"strings"
 )
 
 type ArticleResponse struct {
@@ -70,7 +71,7 @@ func articleToResponseSlice(article *model.Article) *ArticleResponse {
 		CreatedAt:    article.CreatedAt.Unix(),
 		UpdatedAt:    article.UpdatedAt.Unix(),
 		Title:        article.Title,
-		Content:      string(content) + "...",
+		Content:      strings.ReplaceAll(string(content)+"...", "\n", " "),
 		ContentType:  article.ContentType,
 		Img:          article.Img,
 		CommentCount: article.CommentCount,

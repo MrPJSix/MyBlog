@@ -32,6 +32,6 @@ func MarkdownToText(markdownContent *string) string {
 	if err != nil {
 		panic("解析Markdown失败: " + err.Error())
 	}
-
-	return buf.String()
+	htmlContent := buf.String()
+	return StripHTMLTags(&htmlContent)
 }
