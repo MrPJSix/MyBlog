@@ -2,6 +2,7 @@ package dto
 
 import (
 	"myblog.backend/model"
+	"myblog.backend/utils/totext"
 )
 
 type ArticleResponse struct {
@@ -10,6 +11,7 @@ type ArticleResponse struct {
 	UpdatedAt    int64    `json:"updated_at"`
 	Title        string   `json:"title"`
 	Content      string   `json:"content"`
+	ContentType  string   `json:"content_type"`
 	Img          *string  `json:"img"`
 	CommentCount int      `json:"comment_count"`
 	ReadCount    int      `json:"read_count"`
@@ -36,6 +38,41 @@ func ArticleToResponse(article *model.Article) *ArticleResponse {
 		UpdatedAt:    article.UpdatedAt.Unix(),
 		Title:        article.Title,
 		Content:      article.Content,
+		ContentType:  article.ContentType,
+		Img:          article.Img,
+		CommentCount: article.CommentCount,
+		ReadCount:    article.ReadCount,
+		Likes:        article.Likes,
+		Category: Category{
+			CategoryID:   article.CategoryID,
+			CategoryName: article.Category.Name,
+		},
+		Author: Author{
+			UserID:    article.UserID,
+			FullName:  article.User.FullName,
+			AvatarURL: article.User.AvatarURL,
+		},
+	}
+}
+
+func articleToResponseSlice(article *model.Article) *ArticleResponse {
+	var content string
+	if article.ContentType == "h" {
+		content = totext.StripHTMLTags(&article.Content)
+	} else {
+		content = totext.MarkdownToText(&article.Content)
+	}
+	if len(content) > 50 {
+		content = content[:50]
+	}
+	content += "..."
+	return &ArticleResponse{
+		ID:           article.ID,
+		CreatedAt:    article.CreatedAt.Unix(),
+		UpdatedAt:    article.UpdatedAt.Unix(),
+		Title:        article.Title,
+		Content:      content,
+		ContentType:  article.ContentType,
 		Img:          article.Img,
 		CommentCount: article.CommentCount,
 		ReadCount:    article.ReadCount,
@@ -55,7 +92,7 @@ func ArticleToResponse(article *model.Article) *ArticleResponse {
 func ArticleSliceToResponse(articles []model.Article) []*ArticleResponse {
 	var responses []*ArticleResponse
 	for _, article := range articles {
-		response := ArticleToResponse(&article)
+		response := articleToResponseSlice(&article)
 		responses = append(responses, response)
 	}
 	return responses

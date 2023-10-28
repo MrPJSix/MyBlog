@@ -8,6 +8,7 @@ type Article struct {
 	gorm.Model
 	Title        string  `gorm:"type:varchar(100);not null;comment:标题" json:"title"`
 	Content      string  `gorm:"type:longtext;comment:内容" json:"content"`
+	ContentType  string  `gorm:"type:char(1);not null;default:'h';check:content_type IN ('h','m');comment:内容类型(HTML/Markdown)" json:"content_type"`
 	Img          *string `gorm:"type:varchar(100);comment:封面链接" json:"img"`
 	CommentCount int     `gorm:"type:int;not null;default:0;comment:评论数" json:"comment_count"`
 	ReadCount    int     `gorm:"type:int;not null;default:0;comment:阅读量" json:"read_count"`
@@ -21,4 +22,11 @@ type Article struct {
 type ArticleLike struct {
 	ArticleID uint `gorm:"primaryKey" json:"article_id"`
 	UserID    uint `gorm:"primaryKey" json:"user_id"`
+}
+
+func (article *Article) BeforeSave(_ *gorm.DB) error {
+	if article.Content != "h" && article.Content != "m" {
+		article.Content = "m"
+	}
+	return nil
 }
