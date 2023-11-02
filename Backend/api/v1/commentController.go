@@ -3,11 +3,14 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"myblog.backend/dto/response"
+	"myblog.backend/middleware/auth"
 	"myblog.backend/model"
 	"myblog.backend/service"
 	"myblog.backend/utils/errmsg"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 )
 
 /* ====================================== */
@@ -19,6 +22,8 @@ type ICommentController interface {
 	GetRootCommentsByArticleID(c *gin.Context)
 	GetRepliesByRootComment(c *gin.Context)
 	GetAllCommentsCount(c *gin.Context)
+	UserIsLiked(c *gin.Context)
+	UserLikesComment(c *gin.Context)
 }
 
 type CommentController struct {
@@ -95,7 +100,21 @@ func (cc *CommentController) GetCommentsByArticleID(c *gin.Context) {
 	articleID := uint(aid)
 
 	comments, total, code := cc.commentService.GetCommentsByArticleID(articleID)
-	responseData := dto.CommentSliceToResponse(comments)
+
+	tokenHeader := c.GetHeader("Authorization")
+	checkToken := strings.SplitN(tokenHeader, " ", 2)
+	var userID uint
+	if tokenHeader == "" || (len(checkToken) != 2 && checkToken[0] != "Bearer") {
+		userID = 0
+	}
+	claims, code2 := auth.CheckToken(checkToken[1])
+	if code2 == errmsg.ERROR || time.Now().Unix() > (*claims.ExpiresAt).Time.Unix() {
+		userID = 0
+	} else {
+		userID = claims.UserID
+	}
+
+	responseData := dto.CommentLikeSliceToResponse(comments, userID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
@@ -110,7 +129,17 @@ func (cc *CommentController) GetRootCommentsByArticleID(c *gin.Context) {
 	var comments []model.Comment
 	var code int
 	comments, code = cc.commentService.GetRootCommentsByArticleID(uint(articleID))
-	responseData := dto.CommentSliceToResponse(comments)
+
+	tokenHeader := c.GetHeader("Authorization")
+	checkToken := strings.SplitN(tokenHeader, " ", 2)
+	var responseData []*dto.CommentResponse
+	if tokenHeader == "" || (len(checkToken) != 2 && checkToken[0] != "Bearer") {
+		responseData = dto.CommentSliceToResponse(comments)
+	} else if claims, code2 := auth.CheckToken(checkToken[1]); code2 == errmsg.ERROR || time.Now().Unix() > (*claims.ExpiresAt).Time.Unix() {
+		responseData = dto.CommentSliceToResponse(comments)
+	} else {
+		responseData = dto.CommentLikeSliceToResponse(comments, claims.UserID)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
@@ -143,7 +172,16 @@ func (cc *CommentController) GetRepliesByRootComment(c *gin.Context) {
 
 	replies, code := cc.commentService.GetRepliesByRoot(uint(id), pageSize, pageNum)
 
-	responseData := dto.CommentSliceToResponse(replies)
+	tokenHeader := c.GetHeader("Authorization")
+	checkToken := strings.SplitN(tokenHeader, " ", 2)
+	var responseData []*dto.CommentResponse
+	if tokenHeader == "" || (len(checkToken) != 2 && checkToken[0] != "Bearer") {
+		responseData = dto.CommentSliceToResponse(replies)
+	} else if claims, code2 := auth.CheckToken(checkToken[1]); code2 == errmsg.ERROR || time.Now().Unix() > (*claims.ExpiresAt).Time.Unix() {
+		responseData = dto.CommentSliceToResponse(replies)
+	} else {
+		responseData = dto.CommentLikeSliceToResponse(replies, claims.UserID)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
@@ -158,6 +196,29 @@ func (cc *CommentController) GetAllCommentsCount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    total,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (cc *CommentController) UserIsLiked(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	userID := c.MustGet("user_id").(uint)
+
+	data, code := cc.commentService.UserIsLiked(uint(id), userID)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    data,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (cc *CommentController) UserLikesComment(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	userID := c.MustGet("user_id").(uint)
+
+	code := cc.commentService.UserLikesComment(uint(id), userID)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

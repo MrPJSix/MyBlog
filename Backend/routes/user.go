@@ -47,6 +47,8 @@ func InitUserRouter(group *gin.RouterGroup) {
 		group.POST("article/:id/comment", commentController.CreateCommentToArticle)
 		group.POST("article/:id/comment/:cid/reply", commentController.CreateReply)
 		group.DELETE("comment/:id", commentController.DeleteComment)
+		group.GET("comment/:id/isliked", commentController.UserIsLiked)
+		group.POST("comment/:id/like", commentController.UserLikesComment)
 
 		group.GET("user/notification/unread", notifController.GetUnReadNotifsByReciver)
 		group.GET("user/notification/read", notifController.GetReadNotifsByReciver)

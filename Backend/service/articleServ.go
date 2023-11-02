@@ -22,6 +22,8 @@ type IArticleService interface {
 	GetArticlesCountByUser(userID uint) (int64, int)
 	UpdateArticle(requester *model.User, id uint, article *model.Article) int
 	DeleteArticle(requester *model.User, id uint) int
+
+	// 点赞功能
 	UserIsLiked(articleID, userID uint) (bool, int)
 	likeSQLToRedis(articleID uint) // Deprecated: 用Redis太复杂
 	UserLikesArticle(articleID, userID uint) int
@@ -152,14 +154,16 @@ func (as *ArticleService) DeleteArticle(requester *model.User, id uint) int {
 }
 
 func (as *ArticleService) UserIsLiked(articleID, userID uint) (bool, int) {
-	//code = as.articleRepo.UserIsLikedRds(articleID, userID)
-	//if code == errmsg.REDIS_SET_IS_MEMBER {
-	//	return true, errmsg.SUCCESS
-	//} else if code == errmsg.REDIS_SET_ISNOT_MEMBER {
-	//	return false, errmsg.SUCCESS
-	//} else if code == errmsg.REDIS_SET_NOT_EXISTS {
-	//	go as.likeSQLToRedis(articleID)
-	//}
+	var code int
+	code = as.articleRepo.UserIsLikedRds(articleID, userID)
+	if code == errmsg.REDIS_SET_IS_MEMBER {
+		return true, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_ISNOT_MEMBER {
+		return false, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_NOT_EXISTS {
+		go as.likeSQLToRedis(articleID)
+	} else if code == errmsg.REDIS_SET_IS_SYNCING {
+	}
 	return as.articleRepo.UserIsLikedSQL(articleID, userID)
 }
 
@@ -174,6 +178,29 @@ func (as *ArticleService) likeSQLToRedis(articleID uint) {
 }
 
 func (as *ArticleService) UserLikesArticle(articleID, userID uint) int {
+	var code int
+	rdsCode := as.articleRepo.UserIsLikedRds(articleID, userID)
+	if rdsCode == errmsg.REDIS_SET_IS_MEMBER {
+		defer as.articleRepo.DecreaseLikes(articleID, userID)
+		return as.articleRepo.DecreaseLikesRds(articleID, userID)
+	} else if rdsCode == errmsg.REDIS_SET_ISNOT_MEMBER {
+		defer as.articleRepo.IncreaseLikes(articleID, userID)
+		return as.articleRepo.IncreaseLikesRds(articleID, userID)
+	} else if rdsCode == errmsg.REDIS_SET_IS_SYNCING {
+		isLiked, code := as.articleRepo.UserIsLikedSQL(articleID, userID)
+		if code != errmsg.SUCCESS {
+			return code
+		}
+		if isLiked {
+			defer as.articleRepo.DecreaseLikesRds(articleID, userID)
+			code = as.articleRepo.DecreaseLikes(articleID, userID)
+		} else {
+			defer as.articleRepo.IncreaseLikesRds(articleID, userID)
+			code = as.articleRepo.IncreaseLikes(articleID, userID)
+		}
+		return code
+	}
+
 	isLiked, code := as.UserIsLiked(articleID, userID)
 	if code != errmsg.SUCCESS {
 		return code
@@ -183,5 +210,6 @@ func (as *ArticleService) UserLikesArticle(articleID, userID uint) int {
 	} else {
 		code = as.articleRepo.IncreaseLikes(articleID, userID)
 	}
+
 	return code
 }

@@ -29,9 +29,13 @@ type IArticleRepo interface {
 	Update(id uint, article *model.Article) int
 	Delete(id uint) int
 	IncreaseReadCount(id uint)
+
+	// 点赞功能
 	UserIsLikedRds(articleID, userID uint) int // Deprecated: 用Redis太复杂
 	UserIsLikedSQL(articleID, userID uint) (bool, int)
+	IncreaseLikesRds(articleID, uesrID uint) int
 	IncreaseLikes(articleID, uesrID uint) int
+	DecreaseLikesRds(articleID, userID uint) int
 	DecreaseLikes(articleID, userID uint) int
 	SaveLikesToRedis(articleID uint) error // Deprecated: 用Redis太复杂
 }
@@ -260,18 +264,29 @@ func (ar *ArticleRepo) IncreaseReadCount(id uint) {
 	db.Model(&model.Article{}).Where("id = ?", id).UpdateColumn("read_count", gorm.Expr("read_count + ?", 1))
 }
 
-// Deprecated: 用Redis太复杂
+// 用Redis太复杂
 // 查看用户是否已经点赞(Redis)
 func (ar *ArticleRepo) UserIsLikedRds(articleID, userID uint) int {
-	exists, err := rdb.Exists(context.Background(), rdsprefix.ArticleLikeSet+strconv.Itoa(int(articleID))).Result()
+	ctx := context.Background()
+	redisKey := rdsprefix.ArticleLikeSet + strconv.Itoa(int(articleID))
+	redisKeySync := rdsprefix.ArticleLikeSync + strconv.Itoa(int(articleID))
+	exists, err := rdb.Exists(ctx, redisKey, redisKeySync).Result()
 	if err != nil {
 		log.Println("[Redis]无法确认set是否存在", err)
 		return errmsg.REDIS_ERROR
 	}
-	if exists != 1 {
+	if exists != 2 {
 		return errmsg.REDIS_SET_NOT_EXISTS
 	}
-	liked, err := rdb.SIsMember(context.Background(), rdsprefix.ArticleLikeSet+strconv.Itoa(int(articleID)), userID).Result()
+	isSyncing, err := rdb.Get(ctx, redisKeySync).Result()
+	if err != nil {
+		log.Println("[Redis]查询ArticleSync错误", err)
+		return errmsg.REDIS_ERROR
+	}
+	if isSyncing == "1" {
+		return errmsg.REDIS_SET_IS_SYNCING
+	}
+	liked, err := rdb.SIsMember(ctx, rdsprefix.ArticleLikeSet+strconv.Itoa(int(articleID)), userID).Result()
 	if err != nil {
 		log.Println("[Redis]无法确认member是否在set中", err)
 		return errmsg.REDIS_ERROR
@@ -338,7 +353,23 @@ func (ar *ArticleRepo) DecreaseLikes(articleID, userID uint) int {
 	return errmsg.SUCCESS
 }
 
-// Deprecated: 用Redis太复杂
+func (ar *ArticleRepo) IncreaseLikesRds(articleID, userID uint) int {
+	_, err := rdb.SAdd(context.Background(), rdsprefix.ArticleLikeSet+strconv.Itoa(int(articleID)), userID).Result()
+	if err != nil {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCESS
+}
+
+func (ar *ArticleRepo) DecreaseLikesRds(articleID, userID uint) int {
+	res, err := rdb.SRem(context.Background(), rdsprefix.ArticleLikeSet+strconv.Itoa(int(articleID)), userID).Result()
+	if err != nil || res == 0 {
+		return errmsg.ERROR
+	}
+	return errmsg.SUCCESS
+}
+
+// 用Redis太复杂
 func (ar *ArticleRepo) SaveLikesToRedis(articleID uint) error {
 	var ctx = context.Background()
 	// 从数据库中查询点赞某篇文章的所有用户
@@ -350,8 +381,11 @@ func (ar *ArticleRepo) SaveLikesToRedis(articleID uint) error {
 		return err
 	}
 	// 分批添加到 Redis
+	redisKeySync := rdsprefix.ArticleLikeSync + strconv.Itoa(int(articleID))
 	batchSize := 1000 // 选择一个合适的批处理大小
 	redisKey := rdsprefix.ArticleLikeSet + strconv.Itoa(int(articleID))
+	rdb.Set(ctx, redisKeySync, "1", 0)
+	rdb.SAdd(ctx, redisKey, "0")
 	for i := 0; i < len(likes); i += batchSize {
 		end := i + batchSize
 		if end > len(likes) {
@@ -369,9 +403,12 @@ func (ar *ArticleRepo) SaveLikesToRedis(articleID uint) error {
 		}
 	}
 	// 为Redis集合设置过期时间(一周)
-	_, err = rdb.Expire(ctx, redisKey, 7*24*time.Hour).Result()
+	pipe := rdb.TxPipeline()
+	pipe.Expire(ctx, redisKey, 7*24*time.Hour)
+	pipe.Set(ctx, redisKeySync, "0", 7*24*time.Hour)
+	_, err = pipe.Exec(ctx)
 	if err != nil {
-		log.Println("[Redis]添加文章%v的点赞用户到Set出错\n")
+		log.Printf("[Redis]添加文章%v的点赞用户到Set设置过期时限时出错\n", articleID)
 		return err
 	}
 

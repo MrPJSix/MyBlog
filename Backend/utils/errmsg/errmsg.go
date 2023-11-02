@@ -42,6 +42,7 @@ const (
 	REDIS_SET_NOT_EXISTS   = 7001
 	REDIS_SET_ISNOT_MEMBER = 7002
 	REDIS_SET_IS_MEMBER    = 7003
+	REDIS_SET_IS_SYNCING   = 7004
 )
 
 var codeMsg = map[int]string{

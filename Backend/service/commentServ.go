@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"myblog.backend/model"
 	"myblog.backend/repository"
 	"myblog.backend/utils/errmsg"
@@ -17,6 +18,11 @@ type ICommentService interface {
 	buildCommentReplies(uint, map[uint][]model.Comment) []model.Comment
 	GetRootCommentsByArticleID(articleID uint) ([]model.Comment, int)
 	GetAllCommentsCount() (int64, int)
+
+	// 点赞功能
+	UserIsLiked(commentID, userID uint) (bool, int)
+	likeSQLToRedis(commentID uint)
+	UserLikesComment(commentID, userID uint) int
 }
 
 type CommentService struct {
@@ -119,4 +125,66 @@ func (cs *CommentService) GetRepliesByRoot(rootCommentID uint, pageSize, pageNum
 // 获取评论总数
 func (cs *CommentService) GetAllCommentsCount() (int64, int) {
 	return cs.commentRepo.GetAllCount()
+}
+
+// 点赞功能
+func (cs *CommentService) UserIsLiked(commentID, userID uint) (bool, int) {
+	var code int
+	code = cs.commentRepo.UserIsLikedRds(commentID, userID)
+	if code == errmsg.REDIS_SET_IS_MEMBER {
+		return true, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_ISNOT_MEMBER {
+		return false, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_NOT_EXISTS {
+		go cs.likeSQLToRedis(commentID)
+	} else if code == errmsg.REDIS_SET_IS_SYNCING {
+	}
+	return cs.commentRepo.UserIsLikedSQL(commentID, userID)
+}
+
+// 用Redis太复杂
+func (cs *CommentService) likeSQLToRedis(commentID uint) {
+	err := cs.commentRepo.SaveLikesToRedis(commentID)
+	if err != nil {
+		log.Println("评论点赞加载到Redis出错", commentID, err)
+	} else {
+		log.Println("评论点赞加载到Redis成功", commentID)
+	}
+}
+
+func (cs *CommentService) UserLikesComment(commentID, userID uint) int {
+	var code int
+	rdsCode := cs.commentRepo.UserIsLikedRds(commentID, userID)
+	if rdsCode == errmsg.REDIS_SET_IS_MEMBER {
+		defer cs.commentRepo.DecreaseLikes(commentID, userID)
+		return cs.commentRepo.DecreaseLikesRds(commentID, userID)
+	} else if rdsCode == errmsg.REDIS_SET_ISNOT_MEMBER {
+		defer cs.commentRepo.IncreaseLikes(commentID, userID)
+		return cs.commentRepo.IncreaseLikesRds(commentID, userID)
+	} else if rdsCode == errmsg.REDIS_SET_IS_SYNCING {
+		isLiked, code := cs.commentRepo.UserIsLikedSQL(commentID, userID)
+		if code != errmsg.SUCCESS {
+			return code
+		}
+		if isLiked {
+			defer cs.commentRepo.DecreaseLikesRds(commentID, userID)
+			code = cs.commentRepo.DecreaseLikes(commentID, userID)
+		} else {
+			defer cs.commentRepo.IncreaseLikesRds(commentID, userID)
+			code = cs.commentRepo.IncreaseLikes(commentID, userID)
+		}
+		return code
+	}
+
+	isLiked, code := cs.UserIsLiked(commentID, userID)
+	if code != errmsg.SUCCESS {
+		return code
+	}
+	if isLiked {
+		code = cs.commentRepo.DecreaseLikes(commentID, userID)
+	} else {
+		code = cs.commentRepo.IncreaseLikes(commentID, userID)
+	}
+
+	return code
 }

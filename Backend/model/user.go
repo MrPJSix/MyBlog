@@ -16,6 +16,11 @@ type User struct {
 	AvatarURL *string `gorm:"type:varchar(100);comment:头像URL" json:"avatar_url"`
 }
 
+type UserArticleStar struct {
+	UserID    uint `gorm:"primaryKey" json:"user_id"`
+	ArticleID uint `gorm:"primaryKey" json:"article_id"`
+}
+
 // 密码加密 & 权限控制
 func (user *User) BeforeCreate(_ *gorm.DB) error {
 	var err error
