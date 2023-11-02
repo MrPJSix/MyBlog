@@ -1,5 +1,14 @@
 {
+  // "compilerOptions": {
+  //   "types": ["element-plus/global"]
+  // },
   "files": [],
+  // "include": [
+  //   "src/**/*.ts",
+  //   "src/**/*.d.ts",
+  //   "src/**/*.tsx",
+  //   "src/**/*.vue"
+  //  ],
   "references": [
     {
       "path": "./tsconfig.node.json"
@@ -7,5 +16,53 @@
     {
       "path": "./tsconfig.app.json"
     }
-  ]
+  ],
+  "compilerOptions": {
+      "target": "esnext",
+      "useDefineForClassFields": true,
+      "module": "ESNext",
+      "moduleResolution": "node",
+      "strict": true,
+      "jsx": "preserve",
+      "sourceMap": true,
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+      "lib": ["esnext", "dom"],
+      "types": ["vite/client", "element-plus/global"],  // <<<<<<<<<<-------添加这一行，ant-design-vue同理
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["./src/*"]
+      }
+    },
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.d.ts",
+      "src/**/*.tsx",
+      "src/**/*.vue"
+    ]
 }
+// {
+//   "compilerOptions": {
+//   "target": "esnext",
+//   "useDefineForClassFields": true,
+//   "module": "esnext",
+//   "moduleResolution": "node",
+//   "strict": true,
+//   "jsx": "preserve",
+//   "sourceMap": true,
+//   "resolveJsonModule": true,
+//   "esModuleInterop": true,
+//   "lib": ["esnext", "dom"],
+//   "types": ["vite/client", "element-plus/global"],  // <<<<<<<<<<-------添加这一行，ant-design-vue同理
+//   "baseUrl": ".",
+//   "paths": {
+//     "@/*": ["./src/*"]
+//   }
+//    },
+//   "include": [
+//     "src/**/*.ts",
+//     "src/**/*.d.ts",
+//     "src/**/*.tsx",
+//     "src/**/*.vue"
+//    ]
+// }
