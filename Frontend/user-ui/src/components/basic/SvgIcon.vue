@@ -15,14 +15,17 @@ const props = defineProps({
         type: String,
         default: ''
     },
-    color: {
-        type: String,
-        default: '#2c2c2c'
+    // color: {
+    //     type: String,
+    //     default: '#2c2c2c'
+    // },
+    activated: {
+        type: Boolean,
+        default: false
     }
 })
 
 const iconClassName = computed(() => {
-    console.log(props.iconName);
     return `#${props.iconName}`
 })
 
@@ -32,6 +35,11 @@ const svgClass = computed(() => {
     }
     return 'svg-icon'
 })
+const color = computed(() => {
+    if (props.activated) {
+        return '#1E90FF'
+    }
+})
 </script>
 
 <style scoped>
@@ -39,7 +47,7 @@ const svgClass = computed(() => {
     width: 3rem;
     height: 3rem;
     /* vertical-align: -0.15em; */
-    fill: currentColor;
+    /* fill: currentColor; */
     /* position: relative; */
 }
 </style>

@@ -1,0 +1,81 @@
+@h-btn-height-default: 50px;
+
+.h-btn {
+    display: grid;
+    grid-template-areas: "prepend content append";
+    grid-template-columns: max-content auto max-content;
+    justify-content: center;
+    align-items: center;
+    border-width: 0;
+    user-select: none;
+    position: relative;
+    font-weight: 500;
+    margin-right: 10px;
+}
+.h-btn--icon{
+    border-radius: 50%;
+    padding: 0;
+    width: @h-btn-height-default;
+    height: @h-btn-height-default;
+    background: transparent;
+}
+.h-btn__prepend, .h-btn__content, .h-btn__append {
+    display: flex;
+    align-items: center;
+    transition: tansform,opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.h-btn__content {
+    grid-area: content;
+    justify-content: center;
+    white-space: nowrap;
+    background-color: black;
+}
+
+.h-btn__overlay, .h-btn__underlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    // pointer-events: none;
+    // background-color: currentColor;
+}
+
+
+.h-btn__overlay{
+    border-radius: inherit;
+    opacity: 0;
+    background: currentColor;
+}
+
+.h-btn__overlay:hover {
+    opacity: 0.08;
+}
+
+.h-btn__underlay{
+    transform: translateX(50px);
+}
+
+.text-middle-emphasis {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.h-icon__svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+.h-icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+}
+
+
+
+button,[type=button] {
+    cursor: pointer;
+}
