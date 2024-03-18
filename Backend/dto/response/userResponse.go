@@ -12,6 +12,8 @@ type UserResponse struct {
 	Bio          string  `json:"bio"`
 	Role         uint8   `json:"role"`
 	AvatarURL    *string `json:"avatar_url"`
+	Follows      int     `json:"followers"`
+	Fans         int     `json:"fans"`
 }
 
 func UserToResponse(user *model.User) *UserResponse {
@@ -23,6 +25,8 @@ func UserToResponse(user *model.User) *UserResponse {
 		Bio:          user.Bio,
 		Role:         user.Role,
 		AvatarURL:    user.AvatarURL,
+		Follows:      user.Follows,
+		Fans:         user.Fans,
 	}
 }
 

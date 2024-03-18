@@ -17,6 +17,8 @@ type IArticleController interface {
 	GetArticleInfo(c *gin.Context)
 	GetArticleList(c *gin.Context)
 	GetAllArticlesCount(c *gin.Context)
+	GetListByTitle(c *gin.Context)
+	GetCountByTitle(c *gin.Context)
 	GetListByCategory(c *gin.Context)
 	GetCountByCategory(c *gin.Context)
 	GetListByUser(c *gin.Context)
@@ -25,6 +27,10 @@ type IArticleController interface {
 	DeleteArticle(c *gin.Context)
 	UserIsLiked(c *gin.Context)
 	UserLikesArticle(c *gin.Context)
+	UserIsStared(c *gin.Context)
+	UserStarsArticle(c *gin.Context)
+	GetStaredArticles(c *gin.Context)
+	GetStaredArtCount(c *gin.Context)
 }
 
 type ArticleController struct {
@@ -98,6 +104,37 @@ func (ac *ArticleController) GetArticleList(c *gin.Context) {
 
 func (ac *ArticleController) GetAllArticlesCount(c *gin.Context) {
 	total, code := ac.articleService.GetAllArticlesCount()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) GetListByTitle(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	title := c.Query("title")
+	if len(title) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  errmsg.ERROR_BAD_REQUEST,
+			"data":    nil,
+			"meesage": errmsg.GetErrMsg(errmsg.ERROR_BAD_REQUEST),
+		})
+		return
+	}
+	articles, code := ac.articleService.GetListByTitle(title, pageSize, pageNum)
+	responseData := dto.ArticleSliceToResponse(articles)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"meesage": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) GetCountByTitle(c *gin.Context) {
+	title := c.Query("title")
+	total, code := ac.articleService.GetArticlesCountByTitle(title)
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
 		"data":    total,
@@ -223,6 +260,56 @@ func (ac *ArticleController) UserLikesArticle(c *gin.Context) {
 	code := ac.articleService.UserLikesArticle(uint(id), userID)
 	c.JSON(http.StatusOK, gin.H{
 		"status":  code,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) UserIsStared(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	userID := c.MustGet("user_id").(uint)
+
+	data, code := ac.articleService.UserIsStared(uint(id), userID)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    data,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) UserStarsArticle(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	userID := c.MustGet("user_id").(uint)
+
+	code := ac.articleService.UserStarsArticle(uint(id), userID)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (ac *ArticleController) GetStaredArticles(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	userID := c.MustGet("user_id").(uint)
+
+	articles, code := ac.articleService.GetStaredArticles(userID, pageSize, pageNum)
+
+	responseData := dto.ArticleSliceToResponse(articles)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+func (ac *ArticleController) GetStaredArtCount(c *gin.Context) {
+	userID := c.MustGet("user_id").(uint)
+
+	total, code := ac.articleService.GetStaredArtCount(userID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    total,
 		"message": errmsg.GetErrMsg(code),
 	})
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"myblog.backend/model"
 	"myblog.backend/repository"
 	"myblog.backend/utils/errmsg"
@@ -19,6 +20,17 @@ type IUserService interface {
 	CheckPassword(user *model.User) int
 	GetUsersCount() (int64, int)
 	GetAllCount() (int64, int)
+
+	// 关注功能
+	UserIsFollowed(followerID, followedID uint) (bool, int)
+	followSQLToRedis(followerID uint)
+	UserFollow(followerID, followedID uint) int
+	GetTheFollowed(userID uint, pageSize, pageNum int) ([]model.User, int)
+	GetFans(userID uint, pageSize, pageNum int) ([]model.User, int)
+
+	//
+	GetTop5Authors() ([]model.TopAuthor, int)
+	GetTop5FollowedUsers() ([]model.TopFollowedUser, int)
 }
 
 // Todo UpdatePassword(username, password string) int
@@ -98,4 +110,102 @@ func (us *UserService) GetUsersCount() (int64, int) {
 
 func (us *UserService) GetAllCount() (int64, int) {
 	return us.userRepo.GetAllCount()
+}
+
+func (us *UserService) UserIsFollowed(followerID, followedID uint) (bool, int) {
+	var code int
+	code = us.userRepo.UserIsFollowedRds(followerID, followedID)
+	if code == errmsg.REDIS_SET_IS_MEMBER {
+		return true, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_ISNOT_MEMBER {
+		return false, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_NOT_EXISTS {
+		go us.followSQLToRedis(followerID)
+	} else if code == errmsg.REDIS_IS_SYNCING {
+	}
+	return us.userRepo.UserIsFollowedSQL(followerID, followedID)
+}
+func (us *UserService) followSQLToRedis(followerID uint) {
+	err := us.userRepo.SaveFollowsToRedis(followerID)
+	if err != nil {
+		log.Println("用户关注加载到Redis出错", followerID, err)
+	} else {
+		log.Println("用户收藏加载到Redis成功", followerID)
+	}
+}
+func (us *UserService) UserFollow(followerID, followedID uint) int {
+	rdsCode := us.userRepo.UserIsFollowedRds(followerID, followedID)
+	if rdsCode == errmsg.REDIS_SET_IS_MEMBER {
+		go us.userRepo.UnFollow(followerID, followedID)
+		return us.userRepo.UnFollowRds(followerID, followedID)
+	} else if rdsCode == errmsg.REDIS_SET_ISNOT_MEMBER {
+		go us.userRepo.Follow(followerID, followedID)
+		return us.userRepo.FollowRds(followerID, followedID)
+	} else if rdsCode == errmsg.REDIS_IS_SYNCING {
+		followed, code := us.userRepo.UserIsFollowedSQL(followerID, followedID)
+		if code != errmsg.SUCCESS {
+			return code
+		}
+		if followed {
+			go us.userRepo.UnFollowRds(followerID, followedID)
+			code = us.userRepo.UnFollow(followerID, followedID)
+		} else {
+			go us.userRepo.FollowRds(followerID, followedID)
+			code = us.userRepo.Follow(followerID, followedID)
+		}
+		return code
+	}
+	followed, code := us.UserIsFollowed(followerID, followedID)
+	if code != errmsg.SUCCESS {
+		return code
+	}
+	if followed {
+		code = us.userRepo.UnFollow(followerID, followedID)
+	} else {
+		code = us.userRepo.Follow(followerID, followedID)
+	}
+	return code
+}
+func (us *UserService) GetTheFollowed(userID uint, pageSize, pageNum int) ([]model.User, int) {
+	var offset int
+	if pageSize >= 100 {
+		pageSize = 100
+	} else if pageSize <= 0 {
+		pageSize = -1
+	}
+	if pageNum <= 0 {
+		offset = -1
+	} else {
+		offset = (pageNum - 1) * pageSize
+	}
+	var users []model.User
+	var code int
+	users, code = us.userRepo.GetTheFollowedRds(userID, pageSize, offset)
+	if code != errmsg.SUCCESS {
+		users, code = us.userRepo.GetTheFollowed(userID, pageSize, offset)
+	}
+	return users, code
+}
+func (us *UserService) GetFans(userID uint, pageSize, pageNum int) ([]model.User, int) {
+	var offset int
+	if pageSize >= 100 {
+		pageSize = 100
+	} else if pageSize <= 0 {
+		pageSize = -1
+	}
+	if pageNum <= 0 {
+		offset = -1
+	} else {
+		offset = (pageNum - 1) * pageSize
+	}
+	return us.userRepo.GetFans(userID, pageSize, offset)
+}
+
+func (us *UserService) GetTop5Authors() ([]model.TopAuthor, int) {
+	return us.userRepo.GetTop5Authors()
+}
+
+// 获取有粉丝的用户
+func (us *UserService) GetTop5FollowedUsers() ([]model.TopFollowedUser, int) {
+	return us.userRepo.GetTop5FollowedUsers()
 }

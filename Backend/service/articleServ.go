@@ -16,6 +16,7 @@ type IArticleService interface {
 	GetArticleList(pageSize, pageNum int) ([]model.Article, int)
 	GetAllArticlesCount() (int64, int)
 	GetListByTitle(title string, pageSize, pageNum int) ([]model.Article, int)
+	GetArticlesCountByTitle(title string) (int64, int)
 	GetListByCategory(articleID uint, pageSize, pageNum int) ([]model.Article, int)
 	GetArticlesCountByCategory(categoryID uint) (int64, int)
 	GetListByUser(userID uint, pageSize, pageNum int) ([]model.Article, int)
@@ -27,6 +28,13 @@ type IArticleService interface {
 	UserIsLiked(articleID, userID uint) (bool, int)
 	likeSQLToRedis(articleID uint) // Deprecated: 用Redis太复杂
 	UserLikesArticle(articleID, userID uint) int
+
+	// 收藏功能
+	UserIsStared(articleID, userID uint) (bool, int)
+	starSQLToRedis(userID uint)
+	UserStarsArticle(articleID, userID uint) int
+	GetStaredArticles(userID uint, ppageSize, pageNum int) ([]model.Article, int)
+	GetStaredArtCount(userID uint) (int64, int)
 }
 
 type ArticleService struct {
@@ -97,6 +105,10 @@ func (as *ArticleService) GetListByTitle(title string, pageSize, pageNum int) ([
 	return as.articleRepo.GetListByTitle(title, pageSize, offset)
 }
 
+func (as *ArticleService) GetArticlesCountByTitle(title string) (int64, int) {
+	return as.articleRepo.GetCountByTitle(title)
+}
+
 func (as *ArticleService) GetListByCategory(categoryID uint, pageSize, pageNum int) ([]model.Article, int) {
 	var offset int
 	if pageSize >= 100 {
@@ -162,12 +174,11 @@ func (as *ArticleService) UserIsLiked(articleID, userID uint) (bool, int) {
 		return false, errmsg.SUCCESS
 	} else if code == errmsg.REDIS_SET_NOT_EXISTS {
 		go as.likeSQLToRedis(articleID)
-	} else if code == errmsg.REDIS_SET_IS_SYNCING {
+	} else if code == errmsg.REDIS_IS_SYNCING {
 	}
 	return as.articleRepo.UserIsLikedSQL(articleID, userID)
 }
 
-// Deprecated: 用Redis太复杂
 func (as *ArticleService) likeSQLToRedis(articleID uint) {
 	err := as.articleRepo.SaveLikesToRedis(articleID)
 	if err != nil {
@@ -181,21 +192,21 @@ func (as *ArticleService) UserLikesArticle(articleID, userID uint) int {
 	var code int
 	rdsCode := as.articleRepo.UserIsLikedRds(articleID, userID)
 	if rdsCode == errmsg.REDIS_SET_IS_MEMBER {
-		defer as.articleRepo.DecreaseLikes(articleID, userID)
+		go as.articleRepo.DecreaseLikes(articleID, userID)
 		return as.articleRepo.DecreaseLikesRds(articleID, userID)
 	} else if rdsCode == errmsg.REDIS_SET_ISNOT_MEMBER {
-		defer as.articleRepo.IncreaseLikes(articleID, userID)
+		go as.articleRepo.IncreaseLikes(articleID, userID)
 		return as.articleRepo.IncreaseLikesRds(articleID, userID)
-	} else if rdsCode == errmsg.REDIS_SET_IS_SYNCING {
+	} else if rdsCode == errmsg.REDIS_IS_SYNCING {
 		isLiked, code := as.articleRepo.UserIsLikedSQL(articleID, userID)
 		if code != errmsg.SUCCESS {
 			return code
 		}
 		if isLiked {
-			defer as.articleRepo.DecreaseLikesRds(articleID, userID)
+			go as.articleRepo.DecreaseLikesRds(articleID, userID)
 			code = as.articleRepo.DecreaseLikes(articleID, userID)
 		} else {
-			defer as.articleRepo.IncreaseLikesRds(articleID, userID)
+			go as.articleRepo.IncreaseLikesRds(articleID, userID)
 			code = as.articleRepo.IncreaseLikes(articleID, userID)
 		}
 		return code
@@ -212,4 +223,81 @@ func (as *ArticleService) UserLikesArticle(articleID, userID uint) int {
 	}
 
 	return code
+}
+
+// 收藏功能
+func (as *ArticleService) UserIsStared(articleID, userID uint) (bool, int) {
+	var code int
+	code = as.articleRepo.UserIsStaredRds(articleID, userID)
+	if code == errmsg.REDIS_SET_IS_MEMBER {
+		return true, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_ISNOT_MEMBER {
+		return false, errmsg.SUCCESS
+	} else if code == errmsg.REDIS_SET_NOT_EXISTS {
+		go as.starSQLToRedis(articleID)
+	} else if code == errmsg.REDIS_IS_SYNCING {
+	}
+	return as.articleRepo.UserIsStaredSQL(articleID, userID)
+}
+func (as *ArticleService) starSQLToRedis(userID uint) {
+	err := as.articleRepo.SaveStarsToRedis(userID)
+	if err != nil {
+		log.Println("用户收藏加载到Redis出错", userID, err)
+	} else {
+		log.Println("用户收藏加载到Redis成功", userID)
+	}
+}
+func (as *ArticleService) UserStarsArticle(articleID, userID uint) int {
+	rdsCode := as.articleRepo.UserIsStaredRds(articleID, userID)
+	if rdsCode == errmsg.REDIS_SET_IS_MEMBER {
+		go as.articleRepo.DecreaseStars(articleID, userID)
+		return as.articleRepo.DecreaseStarsRds(articleID, userID)
+	} else if rdsCode == errmsg.REDIS_SET_ISNOT_MEMBER {
+		go as.articleRepo.IncreaseStars(articleID, userID)
+		return as.articleRepo.IncreaseStarsRds(articleID, userID)
+	} else if rdsCode == errmsg.REDIS_IS_SYNCING {
+		isStared, code := as.articleRepo.UserIsStaredSQL(articleID, userID)
+		if code != errmsg.SUCCESS {
+			return code
+		}
+		if isStared {
+			go as.articleRepo.DecreaseStarsRds(articleID, userID)
+			code = as.articleRepo.DecreaseStars(articleID, userID)
+		} else {
+			go as.articleRepo.IncreaseStarsRds(articleID, userID)
+			code = as.articleRepo.IncreaseStars(articleID, userID)
+		}
+		return code
+	}
+
+	isStared, code := as.UserIsStared(articleID, userID)
+	if code != errmsg.SUCCESS {
+		return code
+	}
+	if isStared {
+		code = as.articleRepo.DecreaseStars(articleID, userID)
+	} else {
+		code = as.articleRepo.IncreaseStars(articleID, userID)
+	}
+
+	return code
+}
+
+func (as *ArticleService) GetStaredArticles(userID uint, pageSize, pageNum int) ([]model.Article, int) {
+	var offset int
+	if pageSize >= 100 {
+		pageSize = 100
+	} else if pageSize <= 0 {
+		pageSize = -1
+	}
+	if pageNum <= 0 {
+		offset = -1
+	} else {
+		offset = (pageNum - 1) * pageSize
+	}
+	return as.articleRepo.GetStaredArticles(userID, pageSize, offset)
+}
+
+func (as *ArticleService) GetStaredArtCount(userID uint) (int64, int) {
+	return as.articleRepo.GetStaredArtCount(userID)
 }

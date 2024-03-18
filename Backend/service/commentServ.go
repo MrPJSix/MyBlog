@@ -137,7 +137,7 @@ func (cs *CommentService) UserIsLiked(commentID, userID uint) (bool, int) {
 		return false, errmsg.SUCCESS
 	} else if code == errmsg.REDIS_SET_NOT_EXISTS {
 		go cs.likeSQLToRedis(commentID)
-	} else if code == errmsg.REDIS_SET_IS_SYNCING {
+	} else if code == errmsg.REDIS_IS_SYNCING {
 	}
 	return cs.commentRepo.UserIsLikedSQL(commentID, userID)
 }
@@ -156,21 +156,21 @@ func (cs *CommentService) UserLikesComment(commentID, userID uint) int {
 	var code int
 	rdsCode := cs.commentRepo.UserIsLikedRds(commentID, userID)
 	if rdsCode == errmsg.REDIS_SET_IS_MEMBER {
-		defer cs.commentRepo.DecreaseLikes(commentID, userID)
+		go cs.commentRepo.DecreaseLikes(commentID, userID)
 		return cs.commentRepo.DecreaseLikesRds(commentID, userID)
 	} else if rdsCode == errmsg.REDIS_SET_ISNOT_MEMBER {
-		defer cs.commentRepo.IncreaseLikes(commentID, userID)
+		go cs.commentRepo.IncreaseLikes(commentID, userID)
 		return cs.commentRepo.IncreaseLikesRds(commentID, userID)
-	} else if rdsCode == errmsg.REDIS_SET_IS_SYNCING {
+	} else if rdsCode == errmsg.REDIS_IS_SYNCING {
 		isLiked, code := cs.commentRepo.UserIsLikedSQL(commentID, userID)
 		if code != errmsg.SUCCESS {
 			return code
 		}
 		if isLiked {
-			defer cs.commentRepo.DecreaseLikesRds(commentID, userID)
+			go cs.commentRepo.DecreaseLikesRds(commentID, userID)
 			code = cs.commentRepo.DecreaseLikes(commentID, userID)
 		} else {
-			defer cs.commentRepo.IncreaseLikesRds(commentID, userID)
+			go cs.commentRepo.IncreaseLikesRds(commentID, userID)
 			code = cs.commentRepo.IncreaseLikes(commentID, userID)
 		}
 		return code

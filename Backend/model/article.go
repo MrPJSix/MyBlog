@@ -17,11 +17,12 @@ type Article struct {
 	UserID       uint `gorm:"not null;comment:作者ID" json:"user_id"`
 	User         User
 	Likes        int `gorm:"default:0;comment:点赞数" json:"likes"`
+	Stars        int `gorm:"default:0;comment:收藏数" json:"stars"`
 }
 
 type ArticleLike struct {
-	ArticleID uint `gorm:"primaryKey" json:"article_id"`
-	UserID    uint `gorm:"primaryKey" json:"user_id"`
+	ArticleID uint `gorm:"primaryKey"`
+	UserID    uint `gorm:"primaryKey"`
 }
 
 func (article *Article) BeforeSave(_ *gorm.DB) error {

@@ -33,20 +33,6 @@
       </el-table>
     </el-row>
     <el-row>
-      <div class="pagination" style="height: 10vh;">
-        <el-pagination
-            v-model:current-page="pageNum"
-            v-model:page-size="pageSize"
-            :page-sizes="[5, 10, 20, 40]"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="totalCategorys"
-            background
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-        />
-      </div>
-    </el-row>
-    <el-row>
       <el-dialog v-model="dialogVisible" title="修改分类信息" width="500px">
         <el-form :model="editedCategoryData" style="display: flex; flex-direction: column; align-items: center">
           <el-form-item label="分类ID" prop="id" label-width="100px">
@@ -81,23 +67,6 @@ const tableData = ref([]);
 
 /* ---------- 分页查询-Start ---------- */
 
-const totalCategorys = ref(0);
-const pageNum = ref(1);
-const pageSize = ref(5);
-const handleSizeChange = (val) => {
-  console.log(`${val} items per page`);
-  pageSize.value = val; // 在更改时更新页面大
-  nextTick(() => {
-    fetchData();
-  });
-}
-const handleCurrentChange = (val) => {
-  console.log(`current page: ${val}`);
-  pageNum.value = val; // 在更改时更新当前页面
-  nextTick(() => {
-    fetchData();
-  });
-}
 const fetchData = async () => {
   try {
     const response = await axios.get(`${baseURL}/users`, {

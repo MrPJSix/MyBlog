@@ -167,7 +167,7 @@ func (cr *CommentRepo) UserIsLikedRds(commentID, userID uint) int {
 		return errmsg.REDIS_ERROR
 	}
 	if isSyncing == "1" {
-		return errmsg.REDIS_SET_IS_SYNCING
+		return errmsg.REDIS_IS_SYNCING
 	}
 	liked, err := rdb.SIsMember(ctx, rdsprefix.CommentLikeSet+strconv.Itoa(int(commentID)), userID).Result()
 	if err != nil {
@@ -199,12 +199,14 @@ func (cr *CommentRepo) IncreaseLikes(commentID, userID uint) int {
 		err := tx.Model(&model.Comment{}).Where("id = ?", commentID).
 			UpdateColumn("likes", gorm.Expr("likes + ?", 1)).Error
 		if err != nil {
-			log.Printf("评论%d增加点赞数出错\n", commentID, err)
+			log.Printf("评论%d增加点赞数出错\n", commentID)
+			log.Println(err)
 			return err
 		}
 		err = tx.Create(&model.CommentLike{CommentID: commentID, UserID: userID}).Error
 		if err != nil {
-			log.Printf("评论%d增加点赞记录出错\n", commentID, err)
+			log.Printf("评论%d增加点赞记录出错\n", commentID)
+			log.Println(err)
 			return err
 		}
 		return nil
@@ -220,12 +222,14 @@ func (cr *CommentRepo) DecreaseLikes(commentID, userID uint) int {
 		err := tx.Model(&model.Comment{}).Where("id = ?", commentID).
 			UpdateColumn("likes", gorm.Expr("likes - ?", 1)).Error
 		if err != nil {
-			log.Printf("评论%d减少点赞数出错\n", commentID, err)
+			log.Printf("评论%d减少点赞数出错\n", commentID)
+			log.Println(err)
 			return err
 		}
 		err = tx.Delete(&model.CommentLike{CommentID: commentID, UserID: userID}).Error
 		if err != nil {
-			log.Printf("评论%d减少点赞记录出错\n", commentID, err)
+			log.Printf("评论%d减少点赞记录出错\n", commentID)
+			log.Println(err)
 			return err
 		}
 		return nil

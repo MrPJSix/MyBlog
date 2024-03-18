@@ -23,6 +23,14 @@ type IUserController interface {
 	UpdateSelfBasicInfo(c *gin.Context)
 	UpLoadAvatar(c *gin.Context)
 	GetSelfProfile(c *gin.Context)
+	UserIsFollowed(c *gin.Context)
+	UserFollow(c *gin.Context)
+	GetSelfTheFollowed(c *gin.Context)
+	GetSelfFans(c *gin.Context)
+	GetOtherTheFollowed(c *gin.Context)
+	GetOtherFans(c *gin.Context)
+	GetTop5Authors(c *gin.Context)
+	GetTop5FollowedUsers(c *gin.Context)
 }
 
 type UserController struct {
@@ -177,5 +185,103 @@ func (uc *UserController) GetSelfProfile(c *gin.Context) {
 		"status":  code,
 		"message": errmsg.GetErrMsg(code),
 		"data":    responseData,
+	})
+}
+
+func (uc *UserController) UserIsFollowed(c *gin.Context) {
+	followedID, _ := strconv.Atoi(c.Param("id"))
+	followerID := c.MustGet("user_id").(uint)
+
+	data, code := uc.userService.UserIsFollowed(followerID, uint(followedID))
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    data,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+func (uc *UserController) UserFollow(c *gin.Context) {
+	followedID, _ := strconv.Atoi(c.Param("id"))
+	followerID := c.MustGet("user_id").(uint)
+
+	code := uc.userService.UserFollow(followerID, uint(followedID))
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+func (uc *UserController) GetSelfTheFollowed(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	selfID := c.MustGet("user_id").(uint)
+
+	users, code := uc.userService.GetTheFollowed(selfID, pageSize, pageNum)
+	responseData := dto.UserSliceToResponse(users)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (uc *UserController) GetSelfFans(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	selfID := c.MustGet("user_id").(uint)
+
+	users, code := uc.userService.GetFans(selfID, pageSize, pageNum)
+	responseData := dto.UserSliceToResponse(users)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (uc *UserController) GetOtherTheFollowed(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	userID, _ := strconv.Atoi(c.Param("id"))
+
+	users, code := uc.userService.GetTheFollowed(uint(userID), pageSize, pageNum)
+	responseData := dto.UserSliceToResponse(users)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (uc *UserController) GetOtherFans(c *gin.Context) {
+	pageSize, _ := strconv.Atoi(c.Query("pagesize"))
+	pageNum, _ := strconv.Atoi(c.Query("pagenum"))
+	userID, _ := strconv.Atoi(c.Param("id"))
+
+	users, code := uc.userService.GetFans(uint(userID), pageSize, pageNum)
+	responseData := dto.UserSliceToResponse(users)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    responseData,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+
+func (uc *UserController) GetTop5Authors(c *gin.Context) {
+	users, code := uc.userService.GetTop5Authors()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    users,
+		"message": errmsg.GetErrMsg(code),
+	})
+}
+func (uc *UserController) GetTop5FollowedUsers(c *gin.Context) {
+	users, code := uc.userService.GetTop5FollowedUsers()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  code,
+		"data":    users,
+		"message": errmsg.GetErrMsg(code),
 	})
 }
